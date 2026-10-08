@@ -38,8 +38,8 @@ export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
 
-// Inicializar Firestore DB
-export const db = getFirestore(app);
+// Inicializar Firestore DB apuntando a la base de datos nombrada 'venstack'
+export const db = getFirestore(app, "venstack");
 
 // Inicializar Analytics (con verificación para evitar errores en entornos sin soporte)
 export let analytics = null;
