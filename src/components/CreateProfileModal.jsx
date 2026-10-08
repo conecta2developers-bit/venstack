@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
-import { X, CheckCircle, Zap, AlertCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, CheckCircle, Zap, AlertCircle, Camera, Upload, Image as ImageIcon } from 'lucide-react';
 import { saveDeveloperToFirestore } from '../firebase';
 
 export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser }) => {
+  const fileInputRef = useRef(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
   const [formData, setFormData] = useState({
     name: currentUser?.name || '',
     role: currentUser?.role || 'Frontend Developer',
     category: 'software',
     level: 'Junior',
+    avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
     city: 'Caracas, VE',
     bio: '',
     rate: '$1,000 - $1,500 / mes',
@@ -26,6 +29,41 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser }) => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [submitted, setSubmitted] = useState(false);
+
+  const handleAvatarFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 320;
+        let width = img.width;
+        let height = img.height;
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        setFormData((prev) => ({ ...prev, avatar: compressedDataUrl }));
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,6 +171,125 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser }) => {
                 <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#86868b' }}>
                   1. Perfil Profesional
                 </span>
+
+                {/* Foto de Perfil & Avatar */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '12px 14px',
+                  background: '#f8fafc',
+                  border: '1px solid rgba(0,0,0,0.06)',
+                  borderRadius: '16px',
+                  marginTop: '2px',
+                  marginBottom: '6px'
+                }}>
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      position: 'relative',
+                      width: '60px',
+                      height: '60px',
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      border: '2.5px solid #ffffff'
+                    }}
+                    title="Haz clic para subir o cambiar tu foto"
+                  >
+                    <img 
+                      src={formData.avatar} 
+                      alt="Vista previa foto de perfil" 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80';
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'rgba(0,0,0,0.38)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: 0.95
+                    }}>
+                      <Camera size={18} color="#ffffff" />
+                    </div>
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '3px' }}>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        style={{
+                          padding: '5px 12px',
+                          borderRadius: '8px',
+                          background: '#ffffff',
+                          border: '1px solid rgba(0,0,0,0.15)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          color: '#1d1d1f',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px'
+                        }}
+                      >
+                        <Upload size={12} />
+                        <span>Subir Foto</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowUrlInput(!showUrlInput)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '11px',
+                          color: '#0d9488',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          padding: '4px'
+                        }}
+                      >
+                        {showUrlInput ? 'Cerrar enlace' : 'O usar URL'}
+                      </button>
+                    </div>
+
+                    <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b' }}>
+                      Foto visible en tu tarjeta y directorio. Admite JPG/PNG.
+                    </p>
+
+                    {showUrlInput && (
+                      <input 
+                        type="url"
+                        placeholder="https://ejemplo.com/tu-foto.jpg"
+                        value={formData.avatar}
+                        onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
+                        style={{
+                          marginTop: '6px',
+                          width: '100%',
+                          padding: '6px 8px',
+                          borderRadius: '6px',
+                          border: '1px solid rgba(0,0,0,0.12)',
+                          fontSize: '11px'
+                        }}
+                      />
+                    )}
+
+                    <input 
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleAvatarFileChange}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
+                </div>
 
                 {/* Disciplina Principal */}
                 <div>
