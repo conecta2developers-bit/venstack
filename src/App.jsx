@@ -23,7 +23,9 @@ import {
   logoutUser, 
   subscribeToDevelopers, 
   subscribeToJobs,
-  subscribeToCompanies 
+  subscribeToCompanies,
+  deleteDeveloperFromFirestore,
+  saveCompanyToFirestore 
 } from './firebase';
 
 export function App() {
@@ -69,15 +71,73 @@ export function App() {
   useEffect(() => {
     const unsubDevs = subscribeToDevelopers((firestoreDevs) => {
       if (firestoreDevs && firestoreDevs.length > 0) {
-        // Excluir perfiles de empresas para que no aparezcan en la grilla de desarrolladores
-        const cleanDevs = firestoreDevs.filter(
-          (d) => d.accountType !== 'company' && d.role !== 'Empresa / Contratante' && d.category !== 'company'
-        );
+        // Separar desarrolladores legítimos de perfiles creados para empresas o reclutadores
+        const companyLikeDevs = [];
+        const cleanDevs = [];
+
+        firestoreDevs.forEach((d) => {
+          const isCompanyRecord = Boolean(
+            d.accountType === 'company' ||
+            d.category === 'company' ||
+            d.role?.toLowerCase().includes('empresa') ||
+            d.role?.toLowerCase().includes('contratante') ||
+            d.role?.toLowerCase().includes('reclutador') ||
+            d.role?.toLowerCase().includes('recruiter') ||
+            d.role?.toLowerCase().includes('rrhh') ||
+            d.role?.toLowerCase().includes('talent') ||
+            d.bio?.toUpperCase().includes('COMPANY') ||
+            d.name?.toLowerCase().includes('wolves lab')
+          );
+
+          if (isCompanyRecord) {
+            companyLikeDevs.push(d);
+          } else {
+            cleanDevs.push(d);
+          }
+        });
+
         setDevelopers((prev) => {
           const firestoreIds = new Set(cleanDevs.map((d) => d.id));
           const existingWithoutOverlap = prev.filter((d) => !firestoreIds.has(d.id));
           return [...cleanDevs, ...existingWithoutOverlap];
         });
+
+        // Migrar automáticamente las empresas detectadas a la colección de companies
+        if (companyLikeDevs.length > 0) {
+          const migratedCompanies = companyLikeDevs.map((d) => ({
+            id: `comp-${d.userId || d.id.replace('dev-', '')}`,
+            userId: d.userId || (d.id.startsWith('dev-') ? d.id.replace('dev-', '') : null),
+            name: d.name || 'Empresa Tech',
+            companyName: d.name || 'Empresa Tech',
+            logoText: (d.name || 'EM').substring(0, 2).toUpperCase(),
+            role: 'Empresa / Contratante',
+            accountType: 'company',
+            industry: 'Software Factory & Apps',
+            location: d.city || 'Caracas, VE • Remoto',
+            website: d.featuredProject?.demoUrl || '',
+            companySize: '1-10 colaboradores (Startup)',
+            avatar: d.avatar || '',
+            description: (d.bio && !d.bio.toUpperCase().includes('COMPANY'))
+              ? d.bio 
+              : 'Organización de tecnología contratando talento tecnológico en Venstack.',
+            techStack: Array.isArray(d.skills) ? d.skills : ['React', 'TypeScript', 'Node.js', 'Python'],
+            benefits: [
+              'Salarios en USDT / Moneda Fuerte',
+              'Modalidad 100% Remoto Flexible',
+              'Bono de Conectividad (Fibra Óptica)',
+              'Horario Flexible Orientado a Resultados'
+            ],
+            paymentMethods: d.payments || ['Binance (USDT)', 'Zinli', 'Deel'],
+            verified: true,
+            updatedAt: Date.now()
+          }));
+
+          setCompanies((prev) => {
+            const migratedIds = new Set(migratedCompanies.map((c) => c.id));
+            const existingWithoutOverlap = prev.filter((c) => !migratedIds.has(c.id));
+            return [...migratedCompanies, ...existingWithoutOverlap];
+          });
+        }
       }
     });
 
@@ -270,14 +330,6 @@ export function App() {
     });
   }, [jobs, searchQuery, jobFilter]);
 
-  // Check if current user has a company or developer profile
-  const companyProfile = useMemo(() => {
-    if (!currentUser) return null;
-    return companies.find(
-      (c) => (c.userId && c.userId === currentUser.uid) || c.id === `comp-${currentUser.uid}`
-    );
-  }, [currentUser, companies]);
-
   const userProfile = useMemo(() => {
     if (!currentUser) return null;
     return developers.find(
@@ -285,11 +337,78 @@ export function App() {
     );
   }, [currentUser, developers]);
 
+  // Check if current user has a company or developer profile
+  const companyProfile = useMemo(() => {
+    if (!currentUser) return null;
+    const directComp = companies.find(
+      (c) => (c.userId && c.userId === currentUser.uid) || c.id === `comp-${currentUser.uid}`
+    );
+    if (directComp) return directComp;
+
+    // Detect if this account was created as a company/recruiter under legacy code
+    const isCompanyByRoleOrName = Boolean(
+      currentUser?.accountType === 'company' ||
+      currentUser?.role?.toLowerCase().includes('empresa') ||
+      currentUser?.role?.toLowerCase().includes('contratante') ||
+      currentUser?.role?.toLowerCase().includes('reclutador') ||
+      currentUser?.role?.toLowerCase().includes('recruiter') ||
+      currentUser?.role?.toLowerCase().includes('rrhh') ||
+      currentUser?.role?.toLowerCase().includes('talent') ||
+      currentUser?.name?.toLowerCase().includes('wolves lab') ||
+      userProfile?.category === 'company' ||
+      userProfile?.role?.toLowerCase().includes('reclutador') ||
+      userProfile?.role?.toLowerCase().includes('recruiter') ||
+      userProfile?.bio?.toUpperCase().includes('COMPANY') ||
+      (currentUser?.uid && localStorage.getItem(`venstack_account_type_${currentUser.uid}`) === 'company')
+    );
+
+    if (isCompanyByRoleOrName) {
+      return {
+        id: `comp-${currentUser.uid}`,
+        userId: currentUser.uid,
+        name: currentUser.name || userProfile?.name || 'Wolves lab',
+        companyName: currentUser.name || userProfile?.name || 'Wolves lab',
+        logoText: (currentUser.name || userProfile?.name || 'WL').substring(0, 2).toUpperCase(),
+        role: 'Empresa / Contratante',
+        accountType: 'company',
+        industry: 'Software Factory & Apps',
+        location: userProfile?.city || 'Caracas, VE • Remoto',
+        website: userProfile?.featuredProject?.demoUrl || '',
+        companySize: '1-10 colaboradores (Startup)',
+        avatar: currentUser.avatar || userProfile?.avatar || '',
+        description: (userProfile?.bio && !userProfile.bio.toUpperCase().includes('COMPANY'))
+          ? userProfile.bio
+          : 'Organización de tecnología contratando talento tecnológico en Venstack.',
+        techStack: Array.isArray(userProfile?.skills) ? userProfile.skills : ['React', 'TypeScript', 'Node.js', 'Python'],
+        benefits: [
+          'Salarios en USDT / Moneda Fuerte',
+          'Modalidad 100% Remoto Flexible',
+          'Bono de Conectividad (Fibra Óptica)',
+          'Horario Flexible Orientado a Resultados'
+        ],
+        paymentMethods: userProfile?.payments || ['Binance (USDT)', 'Zinli', 'Deel'],
+        verified: true,
+      };
+    }
+
+    return null;
+  }, [currentUser, companies, userProfile]);
+
   const isCompanyUser = Boolean(
     companyProfile ||
     currentUser?.accountType === 'company' ||
-    currentUser?.role?.includes('Empresa') ||
-    currentUser?.role?.includes('Contratante')
+    currentUser?.role?.toLowerCase().includes('empresa') ||
+    currentUser?.role?.toLowerCase().includes('contratante') ||
+    currentUser?.role?.toLowerCase().includes('reclutador') ||
+    currentUser?.role?.toLowerCase().includes('recruiter') ||
+    currentUser?.role?.toLowerCase().includes('rrhh') ||
+    currentUser?.role?.toLowerCase().includes('talent') ||
+    currentUser?.name?.toLowerCase().includes('wolves lab') ||
+    userProfile?.category === 'company' ||
+    userProfile?.role?.toLowerCase().includes('reclutador') ||
+    userProfile?.role?.toLowerCase().includes('recruiter') ||
+    userProfile?.bio?.toUpperCase().includes('COMPANY') ||
+    (currentUser?.uid && localStorage.getItem(`venstack_account_type_${currentUser.uid}`) === 'company')
   );
 
   const hasProfile = Boolean(isCompanyUser ? companyProfile : userProfile);
@@ -328,10 +447,20 @@ export function App() {
     }
   }, [companyProfile, userProfile, isCompanyUser, currentUser?.avatar, currentUser?.name, currentUser?.role, currentUser?.accountType]);
 
-  const handleSaveCompany = (savedCompany) => {
+  const handleSaveCompany = async (savedCompany) => {
     if (savedCompany?.userId) {
       localStorage.setItem(`venstack_account_type_${savedCompany.userId}`, 'company');
+      // Clean up legacy developer record in Firestore
+      try {
+        await deleteDeveloperFromFirestore(`dev-${savedCompany.userId}`);
+      } catch (err) {
+        console.warn("Aviso eliminando dev obsoleto:", err);
+      }
     }
+
+    // Clean up local developers state
+    setDevelopers((prev) => prev.filter((d) => d.userId !== savedCompany.userId && d.id !== `dev-${savedCompany.userId}`));
+
     setCompanies((prev) => {
       const idx = prev.findIndex((c) => c.id === savedCompany.id);
       if (idx >= 0) {
@@ -341,6 +470,7 @@ export function App() {
       }
       return [savedCompany, ...prev];
     });
+
     if (currentUser) {
       setCurrentUser((prev) => ({
         ...prev,

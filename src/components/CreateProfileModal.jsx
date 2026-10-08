@@ -1,13 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, CheckCircle, Zap, AlertCircle, Camera, Upload, Image as ImageIcon } from 'lucide-react';
+import { X, CheckCircle, Zap, AlertCircle, Camera, Upload, Image as ImageIcon, Building2 } from 'lucide-react';
 import { saveDeveloperToFirestore } from '../firebase';
 
 export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existingDev, onSwitchToCompany }) => {
   const isCompany = Boolean(
     currentUser?.accountType === 'company' || 
-    currentUser?.role?.includes('Empresa') || 
-    currentUser?.role?.includes('Contratante') ||
-    existingDev?.accountType === 'company'
+    currentUser?.role?.toLowerCase().includes('empresa') || 
+    currentUser?.role?.toLowerCase().includes('contratante') ||
+    currentUser?.role?.toLowerCase().includes('reclutador') ||
+    currentUser?.role?.toLowerCase().includes('recruiter') ||
+    currentUser?.role?.toLowerCase().includes('rrhh') ||
+    currentUser?.role?.toLowerCase().includes('talent') ||
+    currentUser?.name?.toLowerCase().includes('wolves lab') ||
+    existingDev?.category === 'company' ||
+    existingDev?.accountType === 'company' ||
+    existingDev?.role?.toLowerCase().includes('reclutador') ||
+    existingDev?.role?.toLowerCase().includes('recruiter') ||
+    existingDev?.role?.toLowerCase().includes('empresa') ||
+    existingDev?.bio?.toUpperCase().includes('COMPANY') ||
+    (currentUser?.uid && localStorage.getItem(`venstack_account_type_${currentUser.uid}`) === 'company')
   );
 
   useEffect(() => {
@@ -182,6 +193,51 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existi
           ) : (
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '12px' }}>
               
+              {/* Banner switch to Company Profile */}
+              {onSwitchToCompany && (
+                <div style={{
+                  background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                  border: '1px solid #bfdbfe',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Building2 size={18} color="#2563eb" style={{ flexShrink: 0 }} />
+                    <div>
+                      <strong style={{ fontSize: '12px', color: '#1e40af', display: 'block' }}>
+                        ¿Representas a una Empresa o eres Reclutador?
+                      </strong>
+                      <span style={{ fontSize: '11px', color: '#3b82f6' }}>
+                        Configura tu perfil corporativo con vacantes y beneficios en lugar de una ficha técnica individual.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onSwitchToCompany}
+                    style={{
+                      background: '#2563eb',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                      boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)'
+                    }}
+                  >
+                    Ir a Perfil de Empresa
+                  </button>
+                </div>
+              )}
+
               {/* Información Personal */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#86868b' }}>

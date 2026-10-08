@@ -16,7 +16,8 @@ import {
   collection, 
   doc, 
   getDoc,
-  setDoc, 
+  setDoc,
+  deleteDoc, 
   onSnapshot 
 } from "firebase/firestore";
 
@@ -203,5 +204,15 @@ export const getCompanyById = async (compId) => {
     return null;
   }
 };
+
+export const deleteDeveloperFromFirestore = async (devId) => {
+  try {
+    const docRef = doc(db, "developers", devId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.warn("Aviso al eliminar dev de Firestore:", error.message);
+  }
+};
+
 
 
