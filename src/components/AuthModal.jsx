@@ -9,7 +9,8 @@ import {
   loginWithGoogle, 
   loginWithGithub,
   saveDeveloperToFirestore,
-  saveCompanyToFirestore
+  saveCompanyToFirestore,
+  getCompanyById
 } from '../firebase';
 import { updateProfile } from 'firebase/auth';
 
@@ -72,7 +73,29 @@ export const AuthModal = ({
       }
 
       const fbUser = userCredential.user;
-      const isCompany = selectedDiscipline === 'company';
+      let isCompany = selectedDiscipline === 'company';
+      
+      if (mode === 'login') {
+        const storedType = localStorage.getItem(`venstack_account_type_${fbUser.uid}`);
+        if (storedType === 'company') {
+          isCompany = true;
+        } else {
+          try {
+            const compDoc = await getCompanyById(`comp-${fbUser.uid}`);
+            if (compDoc) {
+              isCompany = true;
+            }
+          } catch (e) {
+            // fallback
+          }
+        }
+      }
+
+      if (isCompany) {
+        localStorage.setItem(`venstack_account_type_${fbUser.uid}`, 'company');
+      } else {
+        localStorage.setItem(`venstack_account_type_${fbUser.uid}`, 'developer');
+      }
       
       const user = {
         uid: fbUser.uid,

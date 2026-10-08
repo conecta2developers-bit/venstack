@@ -40,13 +40,14 @@ export function App() {
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((fbUser) => {
       if (fbUser) {
+        const isStoredComp = localStorage.getItem(`venstack_account_type_${fbUser.uid}`) === 'company';
         setCurrentUser((prev) => ({
           ...prev,
           uid: fbUser.uid,
           name: fbUser.displayName || prev?.name || fbUser.email?.split('@')[0] || 'Miembro Venstack',
           email: fbUser.email,
-          role: prev?.role || 'Miembro de la Comunidad',
-          accountType: prev?.accountType || 'developer',
+          role: (isStoredComp || prev?.accountType === 'company') ? 'Empresa / Contratante' : (prev?.role || 'Miembro de la Comunidad'),
+          accountType: (isStoredComp || prev?.accountType === 'company') ? 'company' : (prev?.accountType || 'developer'),
           avatar: fbUser.photoURL || prev?.avatar || '',
           verified: true,
         }));
@@ -121,6 +122,8 @@ export function App() {
     if (!currentUser) {
       setAuthModalMode('register');
       setIsAuthModalOpen(true);
+    } else if (isCompanyUser || currentUser?.accountType === 'company' || companyProfile) {
+      setIsCompanyProfileOpen(true);
     } else {
       setIsCreateProfileOpen(true);
     }
@@ -326,6 +329,9 @@ export function App() {
   }, [companyProfile, userProfile, isCompanyUser, currentUser?.avatar, currentUser?.name, currentUser?.role, currentUser?.accountType]);
 
   const handleSaveCompany = (savedCompany) => {
+    if (savedCompany?.userId) {
+      localStorage.setItem(`venstack_account_type_${savedCompany.userId}`, 'company');
+    }
     setCompanies((prev) => {
       const idx = prev.findIndex((c) => c.id === savedCompany.id);
       if (idx >= 0) {
@@ -335,6 +341,15 @@ export function App() {
       }
       return [savedCompany, ...prev];
     });
+    if (currentUser) {
+      setCurrentUser((prev) => ({
+        ...prev,
+        avatar: savedCompany.avatar || prev?.avatar,
+        name: savedCompany.name || savedCompany.companyName || prev?.name,
+        role: 'Empresa / Contratante',
+        accountType: 'company',
+      }));
+    }
   };
 
   const handleSelectCompany = (companyNameOrObj) => {
@@ -685,21 +700,28 @@ export function App() {
         />
       )}
 
-      {isCreateProfileOpen && (
+      {isCreateProfileOpen && !isCompanyUser && (
         <CreateProfileModal
           currentUser={currentUser}
           existingDev={userProfile}
           onClose={() => setIsCreateProfileOpen(false)}
           onSaveProfile={handleSaveProfile}
+          onSwitchToCompany={() => {
+            setIsCreateProfileOpen(false);
+            setIsCompanyProfileOpen(true);
+          }}
         />
       )}
 
-      {isCompanyProfileOpen && (
+      {(isCompanyProfileOpen || (isCreateProfileOpen && isCompanyUser)) && (
         <CompanyProfileModal
-          isOpen={isCompanyProfileOpen}
+          isOpen={true}
           currentUser={currentUser}
           existingCompany={companyProfile}
-          onClose={() => setIsCompanyProfileOpen(false)}
+          onClose={() => {
+            setIsCompanyProfileOpen(false);
+            setIsCreateProfileOpen(false);
+          }}
           onSaveCompany={handleSaveCompany}
           onOpenPublishJob={() => setIsPublishJobOpen(true)}
           companyJobs={currentCompanyJobs}
@@ -714,6 +736,18 @@ export function App() {
             setSelectedJob(job);
           }}
           activeJobs={jobs}
+          currentUser={currentUser}
+          isOwner={Boolean(
+            currentUser && (
+              selectedCompany.userId === currentUser.uid ||
+              selectedCompany.id === companyProfile?.id ||
+              (companyProfile?.name && selectedCompany.name?.toLowerCase() === companyProfile.name.toLowerCase())
+            )
+          )}
+          onEditCompany={() => {
+            setSelectedCompany(null);
+            setIsCompanyProfileOpen(true);
+          }}
         />
       )}
 

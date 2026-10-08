@@ -15,6 +15,7 @@ import {
   getFirestore, 
   collection, 
   doc, 
+  getDoc,
   setDoc, 
   onSnapshot 
 } from "firebase/firestore";
@@ -188,4 +189,19 @@ export const subscribeToCompanies = (callback) => {
     }
   );
 };
+
+export const getCompanyById = async (compId) => {
+  try {
+    const docRef = doc(db, "companies", compId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+    return null;
+  } catch (error) {
+    console.warn("Aviso Firestore getCompanyById:", error.message);
+    return null;
+  }
+};
+
 

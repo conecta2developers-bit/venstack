@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, Building2, CheckCircle2, ShieldCheck, Plus, Check, AlertCircle 
 } from 'lucide-react';
@@ -71,6 +71,28 @@ export const CompanyProfileModal = ({
     ],
     paymentMethods: existingCompany?.paymentMethods || ['Binance (USDT)', 'Zinli', 'Deel'],
   });
+
+  useEffect(() => {
+    if (existingCompany) {
+      setFormData({
+        name: existingCompany.name || existingCompany.companyName || currentUser?.name || 'Mi Empresa Tech',
+        industry: existingCompany.industry || 'Software Factory & Apps',
+        location: existingCompany.location || 'Caracas, VE • 100% Remoto',
+        website: existingCompany.website || '',
+        companySize: existingCompany.companySize || '11-50 colaboradores (Crecimiento)',
+        avatar: existingCompany.avatar || currentUser?.avatar || '',
+        description: existingCompany.description || 'Buscamos y contratamos talento tecnológico venezolano para proyectos globales y productos de alto impacto.',
+        techStack: Array.isArray(existingCompany.techStack) ? existingCompany.techStack.join(', ') : (existingCompany.techStack || 'React, TypeScript, Node.js, Python, AWS'),
+        benefits: existingCompany.benefits || [
+          'Salarios en USDT / Moneda Fuerte',
+          'Modalidad 100% Remoto Flexible',
+          'Bono de Conectividad (Fibra Óptica)',
+          'Horario Flexible Orientado a Resultados'
+        ],
+        paymentMethods: existingCompany.paymentMethods || ['Binance (USDT)', 'Zinli', 'Deel'],
+      });
+    }
+  }, [existingCompany, currentUser]);
 
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -170,6 +192,9 @@ export const CompanyProfileModal = ({
 
     try {
       await saveCompanyToFirestore(companyPayload);
+      if (companyPayload.userId) {
+        localStorage.setItem(`venstack_account_type_${companyPayload.userId}`, 'company');
+      }
       onSaveCompany?.(companyPayload);
       setSubmitted(true);
       setTimeout(() => {
@@ -209,10 +234,10 @@ export const CompanyProfileModal = ({
             </div>
             <div>
               <h2 style={{ fontSize: '15px', fontWeight: 800, color: '#1d1d1f', margin: 0, letterSpacing: '-0.01em' }}>
-                Perfil de Empresa & Contratante
+                {existingCompany ? 'Editar Perfil de Empresa' : 'Perfil de Empresa & Contratante'}
               </h2>
               <p style={{ fontSize: '11px', color: '#6e6e73', margin: '1px 0 0 0' }}>
-                Identidad corporativa, stack requerido y propuesta de valor
+                {existingCompany ? 'Actualiza los datos corporativos, beneficios y stack de tu organización' : 'Identidad corporativa, stack requerido y propuesta de valor'}
               </p>
             </div>
           </div>
@@ -699,7 +724,7 @@ export const CompanyProfileModal = ({
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  {loading ? 'Guardando...' : 'Guardar Perfil de Empresa'}
+                  {loading ? 'Guardando...' : existingCompany ? 'Actualizar Perfil de Empresa' : 'Guardar Perfil de Empresa'}
                 </button>
               </div>
 

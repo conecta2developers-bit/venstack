@@ -1,8 +1,24 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, CheckCircle, Zap, AlertCircle, Camera, Upload, Image as ImageIcon } from 'lucide-react';
 import { saveDeveloperToFirestore } from '../firebase';
 
-export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existingDev }) => {
+export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existingDev, onSwitchToCompany }) => {
+  const isCompany = Boolean(
+    currentUser?.accountType === 'company' || 
+    currentUser?.role?.includes('Empresa') || 
+    currentUser?.role?.includes('Contratante') ||
+    existingDev?.accountType === 'company'
+  );
+
+  useEffect(() => {
+    if (isCompany && onSwitchToCompany) {
+      onSwitchToCompany();
+    }
+  }, [isCompany, onSwitchToCompany]);
+
+  if (isCompany) {
+    return null;
+  }
   const fileInputRef = useRef(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [formData, setFormData] = useState({

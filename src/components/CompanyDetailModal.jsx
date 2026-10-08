@@ -1,10 +1,17 @@
 import React from 'react';
 import { 
   X, Building2, Globe, MapPin, Users, Briefcase, 
-  ShieldCheck, ExternalLink, Check, Coins, ArrowRight 
+  ShieldCheck, ExternalLink, Check, Coins, ArrowRight, Edit3 
 } from 'lucide-react';
 
-export const CompanyDetailModal = ({ company, onClose, onSelectJob, activeJobs = [] }) => {
+export const CompanyDetailModal = ({ 
+  company, 
+  onClose, 
+  onSelectJob, 
+  activeJobs = [],
+  isOwner = false,
+  onEditCompany
+}) => {
   if (!company) return null;
 
   const relevantJobs = activeJobs.filter((j) => 
@@ -41,20 +48,47 @@ export const CompanyDetailModal = ({ company, onClose, onSelectJob, activeJobs =
             </span>
           </div>
 
-          <button
-            onClick={onClose}
-            style={{
-              padding: '6px',
-              borderRadius: '50%',
-              background: 'rgba(0,0,0,0.04)',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex'
-            }}
-            title="Cerrar"
-          >
-            <X size={15} color="#1d1d1f" strokeWidth={2.5} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isOwner && onEditCompany && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onEditCompany();
+                }}
+                className="apple-btn-secondary"
+                style={{
+                  fontSize: '11.5px',
+                  padding: '5px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  borderColor: '#93c5fd',
+                  color: '#1d4ed8',
+                  background: '#eff6ff',
+                  cursor: 'pointer'
+                }}
+                title="Editar los datos de mi empresa"
+              >
+                <Edit3 size={13} color="#2563eb" />
+                <span>Editar Empresa</span>
+              </button>
+            )}
+
+            <button
+              onClick={onClose}
+              style={{
+                padding: '6px',
+                borderRadius: '50%',
+                background: 'rgba(0,0,0,0.04)',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex'
+              }}
+              title="Cerrar"
+            >
+              <X size={15} color="#1d1d1f" strokeWidth={2.5} />
+            </button>
+          </div>
         </div>
 
         {/* Body */}
