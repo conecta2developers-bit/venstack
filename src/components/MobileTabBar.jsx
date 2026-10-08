@@ -1,7 +1,7 @@
 import React from 'react';
-import { Users, Briefcase, Layers, MessageSquare, Plus, Sparkles } from 'lucide-react';
+import { Users, Briefcase, Layers, MessageSquare, Plus, Sparkles, Edit3 } from 'lucide-react';
 
-export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile }) => {
+export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile, hasProfile = false }) => {
   const tabs = [
     { id: 'developers', label: 'Talento', icon: Users },
     { id: 'jobs', label: 'Empleos', icon: Briefcase, hasBadge: true },
@@ -103,9 +103,13 @@ export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile }) =
             boxShadow: '0 2px 8px rgba(13, 148, 136, 0.3)',
             transition: 'all 0.18s ease'
           }}
-          title="Crear mi Perfil"
+          title={hasProfile ? "Editar mi Perfil" : "Crear mi Perfil"}
         >
-          <Plus size={16} strokeWidth={2.6} color="#ffffff" />
+          {hasProfile ? (
+            <Edit3 size={16} strokeWidth={2.4} color="#ffffff" />
+          ) : (
+            <Plus size={16} strokeWidth={2.6} color="#ffffff" />
+          )}
           <span style={{
             fontSize: '9.5px',
             fontWeight: 700,
@@ -113,7 +117,7 @@ export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile }) =
             marginTop: '2px',
             lineHeight: 1
           }}>
-            Mi Perfil
+            {hasProfile ? 'Editar' : 'Mi Perfil'}
           </span>
         </button>
       </nav>

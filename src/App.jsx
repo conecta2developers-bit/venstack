@@ -240,6 +240,16 @@ export function App() {
     });
   }, [jobs, searchQuery, jobFilter]);
 
+  // Check if current user already has a published profile
+  const userProfile = useMemo(() => {
+    if (!currentUser) return null;
+    return developers.find(
+      (d) => (d.userId && d.userId === currentUser.uid) || d.id === `dev-${currentUser.uid}`
+    );
+  }, [currentUser, developers]);
+
+  const hasProfile = Boolean(userProfile);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingBottom: '96px', overflowX: 'hidden', width: '100%' }}>
       
@@ -253,6 +263,7 @@ export function App() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
+        hasProfile={hasProfile}
         onOpenLogin={handleOpenLogin}
         onOpenRegister={handleOpenRegister}
         onLogout={handleLogout}
@@ -266,6 +277,7 @@ export function App() {
         onCreateProfileClick={handleOpenCreateProfile}
         onSelectTab={setActiveTab}
         onSelectDiscipline={handleSelectDiscipline}
+        hasProfile={hasProfile}
       />
 
       {/* Main Content Area */}
@@ -542,7 +554,7 @@ export function App() {
       {isCreateProfileOpen && (
         <CreateProfileModal
           currentUser={currentUser}
-          existingDev={developers.find(d => (currentUser?.uid && d.userId === currentUser.uid) || (currentUser?.uid && d.id === `dev-${currentUser.uid}`))}
+          existingDev={userProfile}
           onClose={() => setIsCreateProfileOpen(false)}
           onSaveProfile={handleSaveProfile}
         />
@@ -596,6 +608,7 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenCreateProfile={handleOpenCreateProfile}
+        hasProfile={hasProfile}
       />
 
       <style>{`

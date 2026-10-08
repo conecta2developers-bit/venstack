@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  ChevronRight, Plus, Code2, Palette, Brain, Shield
+  ChevronRight, Plus, Code2, Palette, Brain, Shield, Edit3
 } from 'lucide-react';
 
 export const OnboardingHero = ({ 
@@ -8,7 +8,8 @@ export const OnboardingHero = ({
   onEndIntro,
   onExploreClick, 
   onCreateProfileClick, 
-  onSelectDiscipline 
+  onSelectDiscipline,
+  hasProfile = false,
 }) => {
   return (
     <section 
@@ -62,8 +63,8 @@ export const OnboardingHero = ({
             onClick={onCreateProfileClick}
             className="venstack-cover-btn-secondary"
           >
-            <Plus size={15} strokeWidth={2.5} />
-            <span>Crear mi Perfil</span>
+            {hasProfile ? <Edit3 size={15} /> : <Plus size={15} strokeWidth={2.5} />}
+            <span>{hasProfile ? 'Editar mi Perfil' : 'Crear mi Perfil'}</span>
           </button>
         </div>
 

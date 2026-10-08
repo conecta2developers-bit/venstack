@@ -137,10 +137,10 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existi
         <div className="apple-modal-header">
           <div>
             <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-              Crear Perfil Profesional
+              {existingDev ? 'Editar Perfil Profesional' : 'Crear Perfil Profesional'}
             </h2>
             <p style={{ fontSize: '11px', color: '#86868b', margin: '2px 0 0 0' }}>
-              Ficha técnica visible en el directorio Venstack
+              {existingDev ? 'Actualiza tu ficha técnica y tarifas en el directorio' : 'Ficha técnica visible en el directorio Venstack'}
             </p>
           </div>
           <button
@@ -157,10 +157,10 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existi
             <div style={{ padding: '32px 16px', textAlign: 'center' }}>
               <CheckCircle size={40} color="#0d9488" style={{ margin: '0 auto 12px' }} />
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1d1d1f', margin: 0 }}>
-                ¡Perfil Publicado con Éxito!
+                {existingDev ? '¡Perfil Actualizado con Éxito!' : '¡Perfil Publicado con Éxito!'}
               </h3>
               <p style={{ fontSize: '12px', color: '#6e6e73', marginTop: '6px' }}>
-                Tu ficha técnica ya está disponible con insignia auditada.
+                Tu ficha técnica ya está actualizada en el directorio.
               </p>
             </div>
           ) : (
@@ -539,7 +539,7 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existi
                   opacity: loading ? 0.75 : 1
                 }}
               >
-                {loading ? 'Guardando en Firebase...' : 'Publicar Perfil Verificado'}
+                {loading ? 'Guardando en Firebase...' : existingDev ? 'Guardar Cambios' : 'Publicar Perfil Verificado'}
               </button>
             </form>
           )}

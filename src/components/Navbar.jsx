@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User } from 'lucide-react';
+import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Edit3 } from 'lucide-react';
 
 export const Navbar = ({ 
   isIntro = false,
@@ -10,6 +10,7 @@ export const Navbar = ({
   searchQuery, 
   setSearchQuery,
   currentUser = null,
+  hasProfile = false,
   onOpenLogin,
   onOpenRegister,
   onLogout
@@ -121,8 +122,11 @@ export const Navbar = ({
                   background: '#f5f5f7', 
                   padding: '4px 10px 4px 6px', 
                   borderRadius: '999px',
-                  border: '1px solid rgba(0,0,0,0.08)' 
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  cursor: 'pointer' 
                 }}
+                onClick={onOpenCreateProfile}
+                title={hasProfile ? "Editar mi perfil" : "Crear mi perfil"}
               >
                 <img 
                   src={currentUser.avatar} 
@@ -134,6 +138,17 @@ export const Navbar = ({
                   <span style={{ fontSize: '9px', color: '#0d9488', fontWeight: 600 }}>{currentUser.role}</span>
                 </div>
               </div>
+
+              <button
+                onClick={onOpenCreateProfile}
+                className="apple-btn-secondary"
+                style={{ padding: '6px 12px', fontSize: '11.5px', gap: '5px' }}
+                title={hasProfile ? "Editar mi perfil" : "Crear mi perfil"}
+              >
+                {hasProfile ? <Edit3 size={12} /> : <Plus size={12} strokeWidth={2.5} />}
+                <span>{hasProfile ? 'Editar mi Perfil' : 'Crear mi Perfil'}</span>
+              </button>
+
               <button
                 onClick={onLogout}
                 title="Cerrar Sesión"
