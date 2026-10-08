@@ -171,7 +171,15 @@ export function App() {
   };
 
   const handleSaveProfile = (newDev) => {
-    setDevelopers([newDev, ...developers]);
+    setDevelopers((prev) => [newDev, ...prev.filter((d) => d.id !== newDev.id)]);
+    if (currentUser) {
+      setCurrentUser((prev) => ({
+        ...prev,
+        avatar: newDev.avatar,
+        name: newDev.name,
+        role: newDev.role,
+      }));
+    }
   };
 
   const handleSaveJob = (newJob) => {
@@ -534,6 +542,7 @@ export function App() {
       {isCreateProfileOpen && (
         <CreateProfileModal
           currentUser={currentUser}
+          existingDev={developers.find(d => (currentUser?.uid && d.userId === currentUser.uid) || (currentUser?.uid && d.id === `dev-${currentUser.uid}`))}
           onClose={() => setIsCreateProfileOpen(false)}
           onSaveProfile={handleSaveProfile}
         />

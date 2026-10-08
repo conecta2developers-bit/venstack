@@ -2,28 +2,28 @@ import React, { useState, useRef } from 'react';
 import { X, CheckCircle, Zap, AlertCircle, Camera, Upload, Image as ImageIcon } from 'lucide-react';
 import { saveDeveloperToFirestore } from '../firebase';
 
-export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser }) => {
+export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existingDev }) => {
   const fileInputRef = useRef(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [formData, setFormData] = useState({
-    name: currentUser?.name || '',
-    role: currentUser?.role || 'Frontend Developer',
-    category: 'software',
-    level: 'Junior',
-    avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
-    city: 'Caracas, VE',
-    bio: '',
-    rate: '$1,000 - $1,500 / mes',
-    hourlyRate: '$15 - $22 / hora',
-    powerSetup: 'Inversor 2.4kVA con batería LiFePO4',
-    internetSetup: 'Fibra Óptica 400 Mbps Simétrica',
-    backupMobile: 'Línea 4G LTE Digitel / Movistar',
-    skills: 'React, TypeScript, Tailwind CSS, Git',
-    projectTitle: 'Mi Aplicación Web',
-    projectDesc: 'Plataforma para comercio local con pasarela de pagos integrada.',
-    projectDemo: 'https://mi-proyecto.vercel.app',
-    projectGithub: 'https://github.com/miusuario/proyecto',
-    payments: ['Binance (USDT)', 'Zinli', 'Pago Móvil'],
+    name: existingDev?.name || currentUser?.name || '',
+    role: existingDev?.role || currentUser?.role || 'Frontend Developer',
+    category: existingDev?.category || 'software',
+    level: existingDev?.level || 'Junior',
+    avatar: existingDev?.avatar || currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
+    city: existingDev?.city || 'Caracas, VE',
+    bio: existingDev?.bio || '',
+    rate: existingDev?.rate || '$1,000 - $1,500 / mes',
+    hourlyRate: existingDev?.hourlyRate || '$15 - $22 / hora',
+    powerSetup: existingDev?.setup?.power || 'Inversor 2.4kVA con batería LiFePO4',
+    internetSetup: existingDev?.setup?.internet || 'Fibra Óptica 400 Mbps Simétrica',
+    backupMobile: existingDev?.setup?.backupInternet || 'Línea 4G LTE Digitel / Movistar',
+    skills: existingDev?.skills ? existingDev.skills.join(', ') : 'React, TypeScript, Tailwind CSS, Git',
+    projectTitle: existingDev?.featuredProject?.title || 'Mi Aplicación Web',
+    projectDesc: existingDev?.featuredProject?.description || 'Plataforma para comercio local con pasarela de pagos integrada.',
+    projectDemo: existingDev?.featuredProject?.demoUrl || 'https://mi-proyecto.vercel.app',
+    projectGithub: existingDev?.featuredProject?.githubUrl || 'https://github.com/miusuario/proyecto',
+    payments: existingDev?.payments || ['Binance (USDT)', 'Zinli', 'Pago Móvil'],
   });
 
   const [loading, setLoading] = useState(false);
@@ -75,15 +75,15 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser }) => {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const devId = currentUser?.uid ? `dev-${currentUser.uid}` : `dev-${Date.now()}`;
+    const devId = existingDev?.id || (currentUser?.uid ? `dev-${currentUser.uid}` : `dev-${Date.now()}`);
     const newDev = {
       id: devId,
-      userId: currentUser?.uid || null,
+      userId: currentUser?.uid || existingDev?.userId || null,
       name: formData.name || currentUser?.name || 'Desarrollador Criollo',
       role: formData.role || 'Frontend Developer',
       category: formData.category || 'software',
       level: formData.level,
-      avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
+      avatar: formData.avatar || currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
       city: formData.city || 'Caracas, VE',
       verified: true,
       available: true,
