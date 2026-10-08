@@ -1,0 +1,347 @@
+import React, { useState } from 'react';
+import { X, CheckCircle, Zap } from 'lucide-react';
+
+export const CreateProfileModal = ({ onClose, onSaveProfile }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    role: '',
+    level: 'Junior',
+    city: 'Caracas, VE',
+    bio: '',
+    rate: '$800 - $1,200 / mes',
+    hourlyRate: '$12 - $18 / hora',
+    powerSetup: 'Inversor 2.4kVA con batería LiFePO4',
+    internetSetup: 'Fibra Óptica 400 Mbps Simétrica',
+    backupMobile: 'Línea 4G LTE Digitel / Movistar',
+    skills: 'React, TypeScript, Tailwind CSS, Git',
+    projectTitle: 'Mi Aplicación Web',
+    projectDesc: 'Plataforma para comercio local con pasarela de pagos integrada.',
+    projectDemo: 'https://mi-proyecto.vercel.app',
+    projectGithub: 'https://github.com/miusuario/proyecto',
+    payments: ['Binance (USDT)', 'Zinli', 'Pago Móvil'],
+  });
+
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const skillsArray = formData.skills
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const newDev = {
+      id: `dev-${Date.now()}`,
+      name: formData.name || 'Desarrollador Criollo',
+      role: formData.role || 'Frontend Developer',
+      level: formData.level,
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
+      city: formData.city,
+      verified: true,
+      available: true,
+      availabilityText: 'Disponible de inmediato',
+      rate: formData.rate,
+      hourlyRate: formData.hourlyRate,
+      bio: formData.bio || 'Desarrollador enfocado en crear interfaces limpias y código mantenible.',
+      setup: {
+        power: formData.powerSetup,
+        internet: formData.internetSetup,
+        backupInternet: formData.backupMobile,
+        tested: true,
+      },
+      payments: formData.payments,
+      skills: skillsArray.length > 0 ? skillsArray : ['React', 'TypeScript', 'Node.js'],
+      featuredProject: {
+        title: formData.projectTitle,
+        description: formData.projectDesc,
+        demoUrl: formData.projectDemo,
+        githubUrl: formData.projectGithub,
+        stars: 10,
+      },
+      endorsements: 1,
+      karma: 120,
+      githubUser: 'nuevodev',
+    };
+
+    onSaveProfile(newDev);
+    setSubmitted(true);
+    setTimeout(() => {
+      onClose();
+    }, 1400);
+  };
+
+  return (
+    <div className="apple-modal-overlay" onClick={onClose}>
+      <div className="apple-modal-card" onClick={(e) => e.stopPropagation()}>
+        
+        {/* iOS Handle */}
+        <div className="apple-bottom-handle" style={{ display: 'none' }} id="modal-handle" />
+
+        {/* Header */}
+        <div className="apple-modal-header">
+          <div>
+            <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
+              Crear Perfil Profesional
+            </h2>
+            <p style={{ fontSize: '11px', color: '#86868b', margin: '2px 0 0 0' }}>
+              Ficha técnica visible en el directorio Venstack
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ padding: '6px', borderRadius: '50%', background: 'rgba(0,0,0,0.04)', border: 'none', cursor: 'pointer', display: 'flex' }}
+          >
+            <X size={14} color="#1d1d1f" strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="apple-modal-body">
+          {submitted ? (
+            <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+              <CheckCircle size={40} color="#0d9488" style={{ margin: '0 auto 12px' }} />
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#1d1d1f', margin: 0 }}>
+                ¡Perfil Publicado con Éxito!
+              </h3>
+              <p style={{ fontSize: '12px', color: '#6e6e73', marginTop: '6px' }}>
+                Tu ficha técnica ya está disponible con insignia auditada.
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '12px' }}>
+              
+              {/* Información Personal */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#86868b' }}>
+                  1. Perfil Profesional
+                </span>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      Nombre Completo
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. Luis Ramírez"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      Rol Técnico
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. Frontend Engineer"
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      Seniority
+                    </label>
+                    <select
+                      value={formData.level}
+                      onChange={(e) => setFormData({ ...formData, level: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    >
+                      <option value="Junior">Junior (Primer Empleo)</option>
+                      <option value="Mid">Mid-Level (1-3 años)</option>
+                      <option value="Senior">Senior (+4 años)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      Ciudad en Venezuela
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Caracas / Valencia"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                    Bio Resumen
+                  </label>
+                  <textarea
+                    rows="2"
+                    placeholder="Enfocado en crear aplicaciones modernas con React y TypeScript..."
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px', resize: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                    Stack (separado por comas)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.skills}
+                    onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                  />
+                </div>
+              </div>
+
+              {/* Hardware Setup Resiliente */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#0d9488', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Zap size={13} color="#0d9488" />
+                  2. Setup Resiliente
+                </span>
+
+                <div>
+                  <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                    Respaldo Eléctrico (UPS, Inversor, Planta)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.powerSetup}
+                    onChange={(e) => setFormData({ ...formData, powerSetup: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      Conexión de Fibra
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.internetSetup}
+                      onChange={(e) => setFormData({ ...formData, internetSetup: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      Respaldo Móvil LTE
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.backupMobile}
+                      onChange={(e) => setFormData({ ...formData, backupMobile: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Proof of Work */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingTop: '10px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#86868b' }}>
+                  3. Proof of Work & Tarifa
+                </span>
+
+                <div>
+                  <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                    Nombre del Proyecto Real (Proof of Work)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.projectTitle}
+                    onChange={(e) => setFormData({ ...formData, projectTitle: e.target.value })}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      Tarifa Mensual ($/mes)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej. $1,000 - $1,500 / mes"
+                      value={formData.rate}
+                      onChange={(e) => setFormData({ ...formData, rate: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      Tarifa por Hora ($/hora)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej. $15 - $22 / hora"
+                      value={formData.hourlyRate}
+                      onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      URL Live Demo
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.projectDemo}
+                      onChange={(e) => setFormData({ ...formData, projectDemo: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '3px' }}>
+                      URL Repositorio GitHub
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.projectGithub}
+                      onChange={(e) => setFormData({ ...formData, projectGithub: e.target.value })}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '8px', border: '1px solid rgba(0,0,0,0.12)', fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="apple-btn-primary"
+                style={{
+                  width: '100%',
+                  padding: '11px',
+                  justifyContent: 'center',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  marginTop: '8px'
+                }}
+              >
+                Publicar Perfil Verificado
+              </button>
+            </form>
+          )}
+        </div>
+
+      </div>
+
+      <style>{`
+        @media (max-width: 639px) {
+          #modal-handle { display: block !important; }
+        }
+      `}</style>
+    </div>
+  );
+};
