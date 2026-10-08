@@ -79,7 +79,7 @@ export const AuthModal = ({
               selectedDiscipline === 'uiux' ? 'UI/UX Designer' :
               selectedDiscipline === 'ai' ? 'AI Engineer' :
               selectedDiscipline === 'security' ? 'Cybersecurity Analyst' : 'Reclutador Tech',
-        avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&auto=format&fit=crop&q=80',
+        avatar: fbUser.photoURL || '',
         verified: true,
       };
 
@@ -93,7 +93,7 @@ export const AuthModal = ({
           role: user.role,
           category: selectedDiscipline === 'company' ? 'software' : selectedDiscipline,
           level: 'Junior',
-          avatar: user.avatar,
+          avatar: user.avatar || '',
           city: 'Caracas, VE',
           verified: true,
           available: true,
@@ -166,9 +166,7 @@ export const AuthModal = ({
         name: fbUser.displayName || (provider === 'github' ? 'Dev Criollo (GitHub)' : 'Usuario Google'),
         email: fbUser.email,
         role: 'Full Stack Developer',
-        avatar: fbUser.photoURL || (provider === 'github' 
-          ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&auto=format&fit=crop&q=80'
-          : 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=160&auto=format&fit=crop&q=80'),
+        avatar: fbUser.photoURL || '',
         verified: true,
       };
 

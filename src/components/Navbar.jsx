@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Edit3 } from 'lucide-react';
+import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User } from 'lucide-react';
 
 export const Navbar = ({ 
   isIntro = false,
@@ -10,6 +10,7 @@ export const Navbar = ({
   searchQuery, 
   setSearchQuery,
   currentUser = null,
+  userProfile = null,
   hasProfile = false,
   onOpenLogin,
   onOpenRegister,
@@ -112,62 +113,85 @@ export const Navbar = ({
           </button>
 
           {/* User Auth Section */}
-          {currentUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '7px', 
-                  background: '#f5f5f7', 
-                  padding: '4px 10px 4px 6px', 
-                  borderRadius: '999px',
-                  border: '1px solid rgba(0,0,0,0.08)',
-                  cursor: 'pointer' 
-                }}
-                onClick={onOpenCreateProfile}
-                title={hasProfile ? "Editar mi perfil" : "Crear mi perfil"}
-              >
-                <img 
-                  src={currentUser.avatar} 
-                  alt={currentUser.name} 
-                  style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover' }} 
-                />
-                <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#1d1d1f' }}>{currentUser.name}</span>
-                  <span style={{ fontSize: '9px', color: '#0d9488', fontWeight: 600 }}>{currentUser.role}</span>
+          {currentUser ? (() => {
+            const effectiveAvatar = userProfile?.avatar || currentUser?.avatar;
+            const effectiveName = userProfile?.name || currentUser?.name || 'Miembro Venstack';
+            const effectiveRole = userProfile?.role || currentUser?.role || 'Software Engineer';
+            const firstLetter = (effectiveName || 'U').charAt(0).toUpperCase();
+
+            return (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    background: '#f5f5f7', 
+                    padding: '4px 12px 4px 6px', 
+                    borderRadius: '999px',
+                    border: '1px solid rgba(0,0,0,0.08)',
+                    cursor: 'pointer',
+                    transition: 'all 0.16s ease'
+                  }}
+                  onClick={onOpenCreateProfile}
+                  title="Ver y editar mi perfil profesional"
+                >
+                  {effectiveAvatar ? (
+                    <img 
+                      src={effectiveAvatar} 
+                      alt={effectiveName} 
+                      style={{ 
+                        width: '26px', 
+                        height: '26px', 
+                        borderRadius: '50%', 
+                        objectFit: 'cover',
+                        display: 'block',
+                        flexShrink: 0
+                      }} 
+                    />
+                  ) : (
+                    <div style={{
+                      width: '26px',
+                      height: '26px',
+                      borderRadius: '50%',
+                      background: '#0d9488',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      flexShrink: 0
+                    }}>
+                      {firstLetter}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
+                    <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#1d1d1f' }}>{effectiveName}</span>
+                    <span style={{ fontSize: '9px', color: '#0d9488', fontWeight: 600 }}>{effectiveRole}</span>
+                  </div>
                 </div>
+
+                <button
+                  onClick={onLogout}
+                  title="Cerrar Sesión"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '6px',
+                    borderRadius: '50%',
+                    cursor: 'pointer',
+                    color: '#86868b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'color 0.16s ease'
+                  }}
+                >
+                  <LogOut size={15} />
+                </button>
               </div>
-
-              <button
-                onClick={onOpenCreateProfile}
-                className="apple-btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '11.5px', gap: '5px' }}
-                title={hasProfile ? "Editar mi perfil" : "Crear mi perfil"}
-              >
-                {hasProfile ? <Edit3 size={12} /> : <Plus size={12} strokeWidth={2.5} />}
-                <span>{hasProfile ? 'Editar mi Perfil' : 'Crear mi Perfil'}</span>
-              </button>
-
-              <button
-                onClick={onLogout}
-                title="Cerrar Sesión"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '6px',
-                  borderRadius: '50%',
-                  cursor: 'pointer',
-                  color: '#86868b',
-                  display: 'flex',
-                  alignItems: 'center',
-                  transition: 'color 0.16s ease'
-                }}
-              >
-                <LogOut size={15} />
-              </button>
-            </div>
-          ) : (
+            );
+          })() : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <button
                 onClick={onOpenLogin}

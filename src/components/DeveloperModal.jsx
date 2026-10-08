@@ -70,6 +70,9 @@ export const DeveloperModal = ({ dev, onClose, onEndorse }) => {
                 src={dev.avatar}
                 alt={dev.name}
                 style={{ width: '64px', height: '64px', borderRadius: '18px', objectFit: 'cover', border: '1px solid rgba(0,0,0,0.08)' }}
+                onError={(e) => {
+                  e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(dev.name || 'Dev')}`;
+                }}
               />
               <span style={{
                 position: 'absolute',

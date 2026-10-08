@@ -16,6 +16,9 @@ export const DeveloperCard = ({ dev, onSelectDev }) => {
                 src={dev.avatar}
                 alt={dev.name}
                 className="apple-dev-avatar"
+                onError={(e) => {
+                  e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(dev.name || 'Dev')}`;
+                }}
               />
               {dev.available && (
                 <span 

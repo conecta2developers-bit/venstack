@@ -10,7 +10,7 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existi
     role: existingDev?.role || currentUser?.role || 'Frontend Developer',
     category: existingDev?.category || 'software',
     level: existingDev?.level || 'Junior',
-    avatar: existingDev?.avatar || currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
+    avatar: existingDev?.avatar || currentUser?.avatar || '',
     city: existingDev?.city || 'Caracas, VE',
     bio: existingDev?.bio || '',
     rate: existingDev?.rate || '$1,000 - $1,500 / mes',
@@ -83,7 +83,7 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existi
       role: formData.role || 'Frontend Developer',
       category: formData.category || 'software',
       level: formData.level,
-      avatar: formData.avatar || currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
+      avatar: formData.avatar || existingDev?.avatar || currentUser?.avatar || '',
       city: formData.city || 'Caracas, VE',
       verified: true,
       available: true,
@@ -204,7 +204,7 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existi
                       alt="Vista previa foto de perfil" 
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={(e) => {
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80';
+                        e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(formData.name || 'Dev')}`;
                       }}
                     />
                     <div style={{

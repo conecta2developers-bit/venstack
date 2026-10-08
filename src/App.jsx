@@ -39,7 +39,7 @@ export function App() {
           name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Miembro Venstack',
           email: fbUser.email,
           role: 'Software Engineer',
-          avatar: fbUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=160&auto=format&fit=crop&q=80',
+          avatar: fbUser.photoURL || '',
           verified: true,
         });
       } else {
@@ -250,6 +250,24 @@ export function App() {
 
   const hasProfile = Boolean(userProfile);
 
+  // Synchronize currentUser with real profile from Firestore
+  useEffect(() => {
+    if (userProfile && currentUser) {
+      if (
+        (userProfile.avatar && userProfile.avatar !== currentUser.avatar) ||
+        (userProfile.name && userProfile.name !== currentUser.name) ||
+        (userProfile.role && userProfile.role !== currentUser.role)
+      ) {
+        setCurrentUser((prev) => ({
+          ...prev,
+          avatar: userProfile.avatar || prev?.avatar,
+          name: userProfile.name || prev?.name,
+          role: userProfile.role || prev?.role,
+        }));
+      }
+    }
+  }, [userProfile]);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingBottom: '96px', overflowX: 'hidden', width: '100%' }}>
       
@@ -263,6 +281,7 @@ export function App() {
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
+        userProfile={userProfile}
         hasProfile={hasProfile}
         onOpenLogin={handleOpenLogin}
         onOpenRegister={handleOpenRegister}
