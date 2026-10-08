@@ -359,3 +359,93 @@ export const COMMUNITY_TOPICS = [
     tag: "IA"
   }
 ];
+
+export const INITIAL_COMPANIES = [
+  {
+    id: "comp-1",
+    name: "Fintech Caribe",
+    companyName: "Fintech Caribe",
+    logoText: "FC",
+    avatar: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=160&auto=format&fit=crop&q=80",
+    industry: "Fintech & Pagos Digitales",
+    location: "Remoto LatAm (Base en Caracas / Panamá)",
+    website: "https://fintechcaribe.io",
+    companySize: "11-50 colaboradores",
+    description: "Infraestructura financiera de conciliación de pagos multimoneda y pasarelas de liquidación crypto para Latinoamérica. Buscamos talento apasionado por productos financieros de alto impacto.",
+    techStack: ["React", "TypeScript", "Node.js", "PostgreSQL", "AWS", "Docker"],
+    benefits: [
+      "Salarios en USDT / Deel sin demoras",
+      "Modalidad 100% Remoto",
+      "Bono mensual para respaldo eléctrico y fibra óptica",
+      "Horario flexible"
+    ],
+    paymentMethods: ["Binance USDT", "Deel", "Zinli"],
+    verified: true,
+    createdAt: 1710000000000
+  },
+  {
+    id: "comp-2",
+    name: "Cognitive Studio",
+    companyName: "Cognitive Studio",
+    logoText: "CS",
+    avatar: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=160&auto=format&fit=crop&q=80",
+    industry: "Inteligencia Artificial & ML",
+    location: "Miami, FL / Remoto Venezuela",
+    website: "https://cognitivestudio.ai",
+    companySize: "11-50 colaboradores",
+    description: "Estudio de innovación en IA especializada en modelos LLM, RAG semántico y agentes autónomos para empresas en EE.UU. y Europa. Contratamos ingenieros top de Venezuela.",
+    techStack: ["Python", "LangChain", "FastAPI", "Vector DBs", "PyTorch", "Next.js"],
+    benefits: [
+      "Tarifas en USD / USDT competitivas a nivel internacional",
+      "Acceso ilimitado a GPUs cloud (A100 / H100)",
+      "Presupuesto de formación continua en IA",
+      "Proyectos de investigación aplicada de frontera"
+    ],
+    paymentMethods: ["Binance USDT", "Wise", "Deel"],
+    verified: true,
+    createdAt: 1710100000000
+  },
+  {
+    id: "comp-3",
+    name: "CyberSec LatAm",
+    companyName: "CyberSec LatAm",
+    logoText: "CS",
+    avatar: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=160&auto=format&fit=crop&q=80",
+    industry: "Ciberseguridad & Auditoría",
+    location: "Remoto LatAm",
+    website: "https://cyberseclatam.com",
+    companySize: "1-10 colaboradores",
+    description: "Equipo élite de ciberseguridad enfocado en pentesting web/móvil, auditorías de contratos inteligentes y análisis de vulnerabilidades OWASP para startups.",
+    techStack: ["Burp Suite", "Kali Linux", "OWASP", "Python", "Cloud Security"],
+    benefits: [
+      "Micro-Bounties directos en USDT por reporte válido",
+      "Flexibilidad total de horarios por proyecto",
+      "Reconocimiento en hallazgos públicos y ranking"
+    ],
+    paymentMethods: ["Binance P2P", "USDT", "Zinli"],
+    verified: true,
+    createdAt: 1710200000000
+  },
+  {
+    id: "comp-4",
+    name: "Kubo Apps",
+    companyName: "Kubo Apps",
+    logoText: "KA",
+    avatar: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=160&auto=format&fit=crop&q=80",
+    industry: "Software Factory & Apps",
+    location: "Valencia / Remoto",
+    website: "https://kuboapps.dev",
+    companySize: "11-50 colaboradores",
+    description: "Fábrica de software y productos digitales. Creamos aplicaciones web y móviles para clientes en Norteamérica y América Latina con metodologías ágiles.",
+    techStack: ["React", "React Native", "TypeScript", "Tailwind CSS", "GraphQL"],
+    benefits: [
+      "Salarios competitivos con pago quincenal puntual",
+      "Entorno amigable para perfiles Junior con acompañamiento",
+      "Cero burocracia, cultura enfocada en entrega de valor"
+    ],
+    paymentMethods: ["Binance USDT", "Zinli", "Deel"],
+    verified: true,
+    createdAt: 1710300000000
+  }
+];
+

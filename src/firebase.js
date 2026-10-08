@@ -151,3 +151,41 @@ export const subscribeToJobs = (callback) => {
     }
   );
 };
+
+// -------------------------------------------------------------
+// FIRESTORE: Empresas & Reclutadores
+// -------------------------------------------------------------
+export const saveCompanyToFirestore = async (companyData) => {
+  try {
+    const compId = companyData.id || `comp-${Date.now()}`;
+    const cleanComp = {
+      ...companyData,
+      id: compId,
+      updatedAt: Date.now()
+    };
+    const docRef = doc(db, "companies", compId);
+    await setDoc(docRef, cleanComp, { merge: true });
+    return cleanComp;
+  } catch (error) {
+    console.error("Error guardando empresa en Firestore:", error);
+    throw error;
+  }
+};
+
+export const subscribeToCompanies = (callback) => {
+  const compCol = collection(db, "companies");
+  return onSnapshot(
+    compCol,
+    (snapshot) => {
+      const items = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      callback(items);
+    },
+    (error) => {
+      console.warn("Aviso Firestore companies (posible modo offline o reglas):", error.message);
+    }
+  );
+};
+

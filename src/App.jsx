@@ -1,10 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { 
-  Users, Briefcase, Layers, MessageSquare, Plus, Search, 
-  ShieldCheck, Zap, Sparkles, Filter, CheckCircle2, ArrowRight
-} from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 
-import { INITIAL_DEVELOPERS, INITIAL_JOBS, INITIAL_SQUADS } from './data/mockData';
+import { INITIAL_DEVELOPERS, INITIAL_JOBS, INITIAL_SQUADS, INITIAL_COMPANIES } from './data/mockData';
 import { Navbar } from './components/Navbar';
 import { OnboardingHero } from './components/OnboardingHero';
 import { MobileTabBar } from './components/MobileTabBar';
@@ -17,8 +14,16 @@ import { SquadModal } from './components/SquadModal';
 import { CommunityFeed } from './components/CommunityFeed';
 import { CreateProfileModal } from './components/CreateProfileModal';
 import { PublishJobModal } from './components/PublishJobModal';
+import { CompanyProfileModal } from './components/CompanyProfileModal';
+import { CompanyDetailModal } from './components/CompanyDetailModal';
 import { AuthModal } from './components/AuthModal';
-import { subscribeToAuthChanges, logoutUser, subscribeToDevelopers, subscribeToJobs } from './firebase';
+import { 
+  subscribeToAuthChanges, 
+  logoutUser, 
+  subscribeToDevelopers, 
+  subscribeToJobs,
+  subscribeToCompanies 
+} from './firebase';
 
 export function App() {
   const [activeTab, setActiveTab] = useState('developers'); // 'developers' | 'jobs' | 'squads' | 'community'
@@ -34,14 +39,16 @@ export function App() {
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((fbUser) => {
       if (fbUser) {
-        setCurrentUser({
+        setCurrentUser((prev) => ({
+          ...prev,
           uid: fbUser.uid,
-          name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Miembro Venstack',
+          name: fbUser.displayName || prev?.name || fbUser.email?.split('@')[0] || 'Miembro Venstack',
           email: fbUser.email,
-          role: 'Software Engineer',
-          avatar: fbUser.photoURL || '',
+          role: prev?.role || 'Miembro de la Comunidad',
+          accountType: prev?.accountType || 'developer',
+          avatar: fbUser.photoURL || prev?.avatar || '',
           verified: true,
-        });
+        }));
       } else {
         setCurrentUser(null);
       }
@@ -53,16 +60,21 @@ export function App() {
   // Data (Initialized with mocks, synchronized with Firestore in real-time)
   const [developers, setDevelopers] = useState(INITIAL_DEVELOPERS);
   const [jobs, setJobs] = useState(INITIAL_JOBS);
+  const [companies, setCompanies] = useState(INITIAL_COMPANIES);
   const [squads, setSquads] = useState(INITIAL_SQUADS);
 
-  // Subscribe to real-time developers and jobs from Firestore
+  // Subscribe to real-time developers, jobs and companies from Firestore
   useEffect(() => {
     const unsubDevs = subscribeToDevelopers((firestoreDevs) => {
       if (firestoreDevs && firestoreDevs.length > 0) {
+        // Excluir perfiles de empresas para que no aparezcan en la grilla de desarrolladores
+        const cleanDevs = firestoreDevs.filter(
+          (d) => d.accountType !== 'company' && d.role !== 'Empresa / Contratante' && d.category !== 'company'
+        );
         setDevelopers((prev) => {
-          const firestoreIds = new Set(firestoreDevs.map((d) => d.id));
+          const firestoreIds = new Set(cleanDevs.map((d) => d.id));
           const existingWithoutOverlap = prev.filter((d) => !firestoreIds.has(d.id));
-          return [...firestoreDevs, ...existingWithoutOverlap];
+          return [...cleanDevs, ...existingWithoutOverlap];
         });
       }
     });
@@ -77,9 +89,20 @@ export function App() {
       }
     });
 
+    const unsubCompanies = subscribeToCompanies((firestoreCompanies) => {
+      if (firestoreCompanies && firestoreCompanies.length > 0) {
+        setCompanies((prev) => {
+          const firestoreIds = new Set(firestoreCompanies.map((c) => c.id));
+          const existingWithoutOverlap = prev.filter((c) => !firestoreIds.has(c.id));
+          return [...firestoreCompanies, ...existingWithoutOverlap];
+        });
+      }
+    });
+
     return () => {
       if (unsubDevs) unsubDevs();
       if (unsubJobs) unsubJobs();
+      if (unsubCompanies) unsubCompanies();
     };
   }, []);
 
@@ -119,7 +142,9 @@ export function App() {
   const [selectedDev, setSelectedDev] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedSquad, setSelectedSquad] = useState(null);
+  const [selectedCompany, setSelectedCompany] = useState(null);
   const [isCreateProfileOpen, setIsCreateProfileOpen] = useState(false);
+  const [isCompanyProfileOpen, setIsCompanyProfileOpen] = useState(false);
   const [isPublishJobOpen, setIsPublishJobOpen] = useState(false);
 
   // Cinematic 2-second fullscreen onboarding transition
@@ -240,7 +265,14 @@ export function App() {
     });
   }, [jobs, searchQuery, jobFilter]);
 
-  // Check if current user already has a published profile
+  // Check if current user has a company or developer profile
+  const companyProfile = useMemo(() => {
+    if (!currentUser) return null;
+    return companies.find(
+      (c) => (c.userId && c.userId === currentUser.uid) || c.id === `comp-${currentUser.uid}`
+    );
+  }, [currentUser, companies]);
+
   const userProfile = useMemo(() => {
     if (!currentUser) return null;
     return developers.find(
@@ -248,11 +280,33 @@ export function App() {
     );
   }, [currentUser, developers]);
 
-  const hasProfile = Boolean(userProfile);
+  const isCompanyUser = Boolean(
+    companyProfile ||
+    currentUser?.accountType === 'company' ||
+    currentUser?.role?.includes('Empresa') ||
+    currentUser?.role?.includes('Contratante')
+  );
+
+  const hasProfile = Boolean(isCompanyUser ? companyProfile : userProfile);
 
   // Synchronize currentUser with real profile from Firestore
   useEffect(() => {
-    if (userProfile && currentUser) {
+    if (isCompanyUser && companyProfile) {
+      if (
+        (companyProfile.avatar && companyProfile.avatar !== currentUser?.avatar) ||
+        (companyProfile.name && companyProfile.name !== currentUser?.name) ||
+        currentUser?.role !== 'Empresa / Contratante' ||
+        currentUser?.accountType !== 'company'
+      ) {
+        setCurrentUser((prev) => ({
+          ...prev,
+          avatar: companyProfile.avatar || prev?.avatar,
+          name: companyProfile.name || companyProfile.companyName || prev?.name,
+          role: 'Empresa / Contratante',
+          accountType: 'company',
+        }));
+      }
+    } else if (userProfile && currentUser && !isCompanyUser) {
       if (
         (userProfile.avatar && userProfile.avatar !== currentUser.avatar) ||
         (userProfile.name && userProfile.name !== currentUser.name) ||
@@ -263,10 +317,63 @@ export function App() {
           avatar: userProfile.avatar || prev?.avatar,
           name: userProfile.name || prev?.name,
           role: userProfile.role || prev?.role,
+          accountType: 'developer',
         }));
       }
     }
-  }, [userProfile]);
+  }, [companyProfile, userProfile, isCompanyUser, currentUser?.avatar, currentUser?.name, currentUser?.role, currentUser?.accountType]);
+
+  const handleSaveCompany = (savedCompany) => {
+    setCompanies((prev) => {
+      const idx = prev.findIndex((c) => c.id === savedCompany.id);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = savedCompany;
+        return updated;
+      }
+      return [savedCompany, ...prev];
+    });
+  };
+
+  const handleSelectCompany = (companyNameOrObj) => {
+    if (!companyNameOrObj) return;
+    if (typeof companyNameOrObj === 'object') {
+      setSelectedCompany(companyNameOrObj);
+      return;
+    }
+    const cleanName = companyNameOrObj.toLowerCase().trim();
+    const found = companies.find((c) => 
+      c.name?.toLowerCase().includes(cleanName) || 
+      cleanName.includes(c.name?.toLowerCase()) ||
+      c.companyName?.toLowerCase().includes(cleanName)
+    );
+    if (found) {
+      setSelectedCompany(found);
+    } else {
+      setSelectedCompany({
+        id: `comp-temp-${Date.now()}`,
+        name: companyNameOrObj,
+        companyName: companyNameOrObj,
+        logoText: companyNameOrObj.substring(0, 2).toUpperCase(),
+        industry: 'Empresa de Tecnología',
+        location: 'Remoto LatAm',
+        description: 'Organización contratando y colaborando con talento tecnológico venezolano en Venstack.',
+        verified: true,
+        benefits: ['Salarios en USDT', 'Modalidad Remota'],
+        paymentMethods: ['Binance (USDT)', 'Zinli', 'Deel'],
+        techStack: ['Desarrollo Web', 'Mobile', 'Cloud']
+      });
+    }
+  };
+
+  const currentCompanyJobs = useMemo(() => {
+    if (!currentUser) return [];
+    const compName = (companyProfile?.name || currentUser?.name || '').toLowerCase();
+    return jobs.filter((j) => 
+      (j.companyId && companyProfile?.id && j.companyId === companyProfile.id) ||
+      (compName && j.company?.toLowerCase().includes(compName))
+    );
+  }, [jobs, companyProfile, currentUser]);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingBottom: '96px', overflowX: 'hidden', width: '100%' }}>
@@ -282,6 +389,8 @@ export function App() {
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
         userProfile={userProfile}
+        companyProfile={companyProfile}
+        isCompanyUser={isCompanyUser}
         hasProfile={hasProfile}
         onOpenLogin={handleOpenLogin}
         onOpenRegister={handleOpenRegister}
@@ -297,6 +406,7 @@ export function App() {
         onSelectTab={setActiveTab}
         onSelectDiscipline={handleSelectDiscipline}
         hasProfile={hasProfile}
+        isCompanyUser={isCompanyUser}
       />
 
       {/* Main Content Area */}
@@ -470,6 +580,7 @@ export function App() {
                   key={job.id}
                   job={job}
                   onSelectJob={(j) => setSelectedJob(j)}
+                  onSelectCompany={handleSelectCompany}
                 />
               ))}
             </div>
@@ -560,6 +671,7 @@ export function App() {
         <JobModal
           job={selectedJob}
           onClose={() => setSelectedJob(null)}
+          onSelectCompany={handleSelectCompany}
         />
       )}
 
@@ -579,10 +691,35 @@ export function App() {
         />
       )}
 
+      {isCompanyProfileOpen && (
+        <CompanyProfileModal
+          isOpen={isCompanyProfileOpen}
+          currentUser={currentUser}
+          existingCompany={companyProfile}
+          onClose={() => setIsCompanyProfileOpen(false)}
+          onSaveCompany={handleSaveCompany}
+          onOpenPublishJob={() => setIsPublishJobOpen(true)}
+          companyJobs={currentCompanyJobs}
+        />
+      )}
+
+      {selectedCompany && (
+        <CompanyDetailModal
+          company={selectedCompany}
+          onClose={() => setSelectedCompany(null)}
+          onSelectJob={(job) => {
+            setSelectedJob(job);
+          }}
+          activeJobs={jobs}
+        />
+      )}
+
       {isPublishJobOpen && (
         <PublishJobModal
           onClose={() => setIsPublishJobOpen(false)}
           onSaveJob={handleSaveJob}
+          currentUser={currentUser}
+          companyProfile={companyProfile}
         />
       )}
 
@@ -628,6 +765,7 @@ export function App() {
         setActiveTab={setActiveTab}
         onOpenCreateProfile={handleOpenCreateProfile}
         hasProfile={hasProfile}
+        isCompanyUser={isCompanyUser}
       />
 
       <style>{`

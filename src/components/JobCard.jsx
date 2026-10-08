@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock, ArrowRight, Coins, Briefcase } from 'lucide-react';
 
-export const JobCard = ({ job, onSelectJob }) => {
+export const JobCard = ({ job, onSelectJob, onSelectCompany }) => {
   return (
     <div 
       onClick={() => onSelectJob(job)}
@@ -11,24 +11,49 @@ export const JobCard = ({ job, onSelectJob }) => {
         {/* Header: Company Avatar & Role */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%)',
-              border: '1px solid #ccfbf1',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '13px',
-              color: '#0f766e'
-            }}>
+            <div 
+              onClick={(e) => {
+                if (onSelectCompany) {
+                  e.stopPropagation();
+                  onSelectCompany(job.company);
+                }
+              }}
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #f0fdfa 0%, #e0f2fe 100%)',
+                border: '1px solid #ccfbf1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: '13px',
+                color: '#0f766e',
+                cursor: onSelectCompany ? 'pointer' : 'inherit'
+              }}
+              title="Ver perfil de la empresa"
+            >
               {job.companyLogo}
             </div>
 
             <div>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#6e6e73', display: 'block' }}>
+              <span 
+                onClick={(e) => {
+                  if (onSelectCompany) {
+                    e.stopPropagation();
+                    onSelectCompany(job.company);
+                  }
+                }}
+                style={{ 
+                  fontSize: '12px', 
+                  fontWeight: 600, 
+                  color: onSelectCompany ? '#2563eb' : '#6e6e73', 
+                  display: 'block',
+                  cursor: onSelectCompany ? 'pointer' : 'inherit'
+                }}
+                title="Ver perfil de la empresa"
+              >
                 {job.company}
               </span>
               <h3 style={{

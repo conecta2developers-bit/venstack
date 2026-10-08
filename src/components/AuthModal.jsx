@@ -8,7 +8,8 @@ import {
   registerWithEmail, 
   loginWithGoogle, 
   loginWithGithub,
-  saveDeveloperToFirestore 
+  saveDeveloperToFirestore,
+  saveCompanyToFirestore
 } from '../firebase';
 import { updateProfile } from 'firebase/auth';
 
@@ -71,71 +72,113 @@ export const AuthModal = ({
       }
 
       const fbUser = userCredential.user;
+      const isCompany = selectedDiscipline === 'company';
+      
       const user = {
         uid: fbUser.uid,
-        name: fbUser.displayName || name || (mode === 'login' ? 'Miembro Venstack' : 'Nuevo Miembro'),
+        name: fbUser.displayName || name || (isCompany ? 'Empresa Tech' : (mode === 'login' ? 'Miembro Venstack' : 'Nuevo Miembro')),
         email: fbUser.email,
-        role: selectedDiscipline === 'software' ? 'Software Engineer' :
+        role: isCompany ? 'Empresa / Contratante' :
+              selectedDiscipline === 'software' ? 'Software Engineer' :
               selectedDiscipline === 'uiux' ? 'UI/UX Designer' :
-              selectedDiscipline === 'ai' ? 'AI Engineer' :
-              selectedDiscipline === 'security' ? 'Cybersecurity Analyst' : 'Reclutador Tech',
+              selectedDiscipline === 'ai' ? 'AI Engineer' : 'Cybersecurity Analyst',
+        accountType: isCompany ? 'company' : 'developer',
         avatar: fbUser.photoURL || '',
         verified: true,
       };
 
-      // Si es un registro nuevo, guardar perfil profesional directamente en Firestore
+      // Si es un registro nuevo, guardar perfil profesional según corresponda
       if (mode === 'register') {
-        const initialDevProfile = {
-          id: `dev-${fbUser.uid}`,
-          userId: fbUser.uid,
-          name: user.name,
-          email: fbUser.email,
-          role: user.role,
-          category: selectedDiscipline === 'company' ? 'software' : selectedDiscipline,
-          level: 'Junior',
-          avatar: user.avatar || '',
-          city: 'Caracas, VE',
-          verified: true,
-          available: true,
-          availabilityText: workPreference === 'hourly' ? 'Disponible por Horas / Freelance' :
-                            workPreference === 'fulltime' ? 'Disponible Full-time' : 'Disponible (Full-time & Por Horas)',
-          rate: '$1,000 - $1,500 / mes',
-          hourlyRate: '$15 - $22 / hora',
-          bio: `Profesional venezolano en ${selectedDiscipline.toUpperCase()} listo para proyectos y oportunidades remotas.`,
-          setup: {
-            power: 'Inversor / Respaldo Eléctrico Verificado',
-            internet: 'Fibra Óptica de Alta Velocidad',
-            backupInternet: 'Conexión 4G LTE redundante',
-            tested: true,
-          },
-          payments: ['Binance (USDT)', 'Zinli', 'Pago Móvil'],
-          skills: selectedDiscipline === 'uiux' ? ['Figma', 'UI/UX', 'Design Systems', 'Wireframing'] :
-                  selectedDiscipline === 'ai' ? ['Python', 'OpenAI API', 'LangChain', 'FastAPI'] :
-                  selectedDiscipline === 'security' ? ['Pentesting', 'Linux', 'OWASP', 'Ciberseguridad'] :
-                  ['React', 'TypeScript', 'Node.js', 'Next.js'],
-          featuredProject: {
-            title: 'Portafolio Profesional',
-            description: 'Proyectos y soluciones desarrolladas para clientes remotos y globales.',
-            demoUrl: 'https://venstack.dev',
-            githubUrl: 'https://github.com',
-            stars: 12,
-          },
-          endorsements: 1,
-          karma: 150,
-          githubUser: fbUser.email ? fbUser.email.split('@')[0] : 'venstack-dev',
-          createdAt: Date.now()
-        };
+        if (isCompany) {
+          // PERFIL DE EMPRESA (Diferente al desarrollador: sin tarifa de dev ni inversores personales)
+          const initialCompanyProfile = {
+            id: `comp-${fbUser.uid}`,
+            userId: fbUser.uid,
+            name: user.name,
+            companyName: user.name,
+            logoText: (user.name || 'EM').substring(0, 2).toUpperCase(),
+            role: 'Empresa / Contratante',
+            accountType: 'company',
+            industry: 'Tecnología & Software',
+            location: 'Caracas, VE • Remoto',
+            website: '',
+            companySize: '1-10 colaboradores',
+            description: `Empresa tech activa en Venstack contratando y conectando con el mejor talento venezolano.`,
+            techStack: ['React', 'Node.js', 'Python', 'AWS', 'Figma'],
+            benefits: [
+              'Salarios en USDT / Deel puntuales',
+              'Modalidad 100% Remoto Flexible',
+              'Bono mensual de respaldo eléctrico e internet',
+              'Oportunidades de crecimiento y proyectos globales'
+            ],
+            paymentMethods: ['Binance (USDT)', 'Zinli', 'Deel'],
+            verified: true,
+            avatar: user.avatar || '',
+            createdAt: Date.now()
+          };
 
-        try {
-          await saveDeveloperToFirestore(initialDevProfile);
-        } catch (saveErr) {
-          console.warn("Aviso al guardar perfil en Firestore:", saveErr);
+          try {
+            await saveCompanyToFirestore(initialCompanyProfile);
+          } catch (saveErr) {
+            console.warn("Aviso al guardar perfil de empresa en Firestore:", saveErr);
+          }
+        } else {
+          // PERFIL DE DESARROLLADOR INDIVIDUAL
+          const initialDevProfile = {
+            id: `dev-${fbUser.uid}`,
+            userId: fbUser.uid,
+            name: user.name,
+            email: fbUser.email,
+            role: user.role,
+            accountType: 'developer',
+            category: selectedDiscipline,
+            level: 'Junior',
+            avatar: user.avatar || '',
+            city: 'Caracas, VE',
+            verified: true,
+            available: true,
+            availabilityText: workPreference === 'hourly' ? 'Disponible por Horas / Freelance' :
+                              workPreference === 'fulltime' ? 'Disponible Full-time' : 'Disponible (Full-time & Por Horas)',
+            rate: '$1,000 - $1,500 / mes',
+            hourlyRate: '$15 - $22 / hora',
+            bio: `Profesional venezolano en ${selectedDiscipline.toUpperCase()} listo para proyectos y oportunidades remotas.`,
+            setup: {
+              power: 'Inversor / Respaldo Eléctrico Verificado',
+              internet: 'Fibra Óptica de Alta Velocidad',
+              backupInternet: 'Conexión 4G LTE redundante',
+              tested: true,
+            },
+            payments: ['Binance (USDT)', 'Zinli', 'Pago Móvil'],
+            skills: selectedDiscipline === 'uiux' ? ['Figma', 'UI/UX', 'Design Systems', 'Wireframing'] :
+                    selectedDiscipline === 'ai' ? ['Python', 'OpenAI API', 'LangChain', 'FastAPI'] :
+                    selectedDiscipline === 'security' ? ['Pentesting', 'Linux', 'OWASP', 'Ciberseguridad'] :
+                    ['React', 'TypeScript', 'Node.js', 'Next.js'],
+            featuredProject: {
+              title: 'Portafolio Profesional',
+              description: 'Proyectos y soluciones desarrolladas para clientes remotos y globales.',
+              demoUrl: 'https://venstack.dev',
+              githubUrl: 'https://github.com',
+              stars: 12,
+            },
+            endorsements: 1,
+            karma: 150,
+            githubUser: fbUser.email ? fbUser.email.split('@')[0] : 'venstack-dev',
+            createdAt: Date.now()
+          };
+
+          try {
+            await saveDeveloperToFirestore(initialDevProfile);
+          } catch (saveErr) {
+            console.warn("Aviso al guardar perfil en Firestore:", saveErr);
+          }
         }
       }
 
       setSuccessMessage(
         mode === 'login'
           ? `¡Bienvenido de vuelta, ${user.name}!`
+          : isCompany
+          ? `¡Cuenta empresarial para "${user.name}" creada exitosamente!`
           : `¡Cuenta y perfil creados exitosamente en Firebase!`
       );
 
@@ -344,11 +387,15 @@ export const AuthModal = ({
                 <form onSubmit={handleSubmit} className="venstack-auth-form">
                   {mode === 'register' && (
                     <div className="venstack-auth-field">
-                      <label>Nombre y Apellido</label>
+                      <label>
+                        {selectedDiscipline === 'company' 
+                          ? 'Nombre de la Empresa o Startup' 
+                          : 'Nombre y Apellido'}
+                      </label>
                       <input 
                         type="text" 
                         required 
-                        placeholder="Ej. Luis Ramírez" 
+                        placeholder={selectedDiscipline === 'company' ? 'Ej. Fintech Caribe o Quantum Studio' : 'Ej. Luis Ramírez'} 
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                       />
@@ -356,11 +403,13 @@ export const AuthModal = ({
                   )}
 
                   <div className="venstack-auth-field">
-                    <label>Correo Electrónico</label>
+                    <label>
+                      {selectedDiscipline === 'company' ? 'Correo Corporativo o de Contacto' : 'Correo Electrónico'}
+                    </label>
                     <input 
                       type="email" 
                       required 
-                      placeholder="nombre@ejemplo.com" 
+                      placeholder={selectedDiscipline === 'company' ? 'contacto@empresa.com' : 'nombre@ejemplo.com'} 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -398,7 +447,7 @@ export const AuthModal = ({
                   {mode === 'register' && (
                     <>
                       <div className="venstack-auth-field">
-                        <label>Tu Disciplina Principal</label>
+                        <label>Tipo de Perfil a Crear</label>
                         <div className="venstack-discipline-selector">
                           {[
                             { id: 'software', label: 'Software', icon: Code2, color: '#0d9488' },
@@ -424,7 +473,11 @@ export const AuthModal = ({
                       </div>
 
                       <div className="venstack-auth-field">
-                        <label>Preferencia de Contratación</label>
+                        <label>
+                          {selectedDiscipline === 'company' 
+                            ? 'Modalidad de Contratación Ofrecida' 
+                            : 'Preferencia de Contratación'}
+                        </label>
                         <div className="venstack-radio-group">
                           <label className={`venstack-radio-option ${workPreference === 'fulltime' ? 'selected' : ''}`}>
                             <input 
@@ -442,7 +495,7 @@ export const AuthModal = ({
                               checked={workPreference === 'hourly'} 
                               onChange={() => setWorkPreference('hourly')} 
                             />
-                            <span>Por Horas / Freelance</span>
+                            <span>{selectedDiscipline === 'company' ? 'Por Horas / Bounties' : 'Por Horas / Freelance'}</span>
                           </label>
                           <label className={`venstack-radio-option ${workPreference === 'both' ? 'selected' : ''}`}>
                             <input 
@@ -463,7 +516,15 @@ export const AuthModal = ({
                     className="venstack-auth-submit-btn"
                     disabled={loading}
                   >
-                    <span>{loading ? 'Procesando...' : mode === 'login' ? 'Iniciar Sesión' : 'Crear Mi Cuenta Gratis'}</span>
+                    <span>
+                      {loading 
+                        ? 'Procesando...' 
+                        : mode === 'login' 
+                        ? 'Iniciar Sesión' 
+                        : selectedDiscipline === 'company'
+                        ? 'Crear Perfil de Empresa'
+                        : 'Crear Mi Cuenta Gratis'}
+                    </span>
                     {!loading && <ArrowRight size={15} />}
                   </button>
                 </form>

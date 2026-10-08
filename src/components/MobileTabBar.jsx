@@ -1,7 +1,7 @@
 import React from 'react';
-import { Users, Briefcase, Layers, MessageSquare, Plus, Sparkles, Edit3 } from 'lucide-react';
+import { Users, Briefcase, Layers, MessageSquare, Plus, Sparkles, Edit3, Building2 } from 'lucide-react';
 
-export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile, hasProfile = false }) => {
+export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile, hasProfile = false, isCompanyUser = false }) => {
   const tabs = [
     { id: 'developers', label: 'Talento', icon: Users },
     { id: 'jobs', label: 'Empleos', icon: Briefcase, hasBadge: true },
@@ -86,7 +86,7 @@ export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile, has
           );
         })}
 
-        {/* Elevated "Mi Perfil" Button */}
+        {/* Elevated "Mi Perfil" / "Mi Empresa" Button */}
         <button
           onClick={onOpenCreateProfile}
           style={{
@@ -97,15 +97,21 @@ export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile, has
             padding: '5px 10px',
             borderRadius: '18px',
             border: 'none',
-            background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+            background: isCompanyUser
+              ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
+              : 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
             color: '#ffffff',
             cursor: 'pointer',
-            boxShadow: '0 2px 8px rgba(13, 148, 136, 0.3)',
+            boxShadow: isCompanyUser
+              ? '0 2px 8px rgba(37, 99, 235, 0.3)'
+              : '0 2px 8px rgba(13, 148, 136, 0.3)',
             transition: 'all 0.18s ease'
           }}
-          title={hasProfile ? "Editar mi Perfil" : "Crear mi Perfil"}
+          title={isCompanyUser ? "Gestionar Perfil de Empresa" : hasProfile ? "Editar mi Perfil" : "Crear mi Perfil"}
         >
-          {hasProfile ? (
+          {isCompanyUser ? (
+            <Building2 size={16} strokeWidth={2.4} color="#ffffff" />
+          ) : hasProfile ? (
             <Edit3 size={16} strokeWidth={2.4} color="#ffffff" />
           ) : (
             <Plus size={16} strokeWidth={2.6} color="#ffffff" />
@@ -117,7 +123,7 @@ export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile, has
             marginTop: '2px',
             lineHeight: 1
           }}>
-            {hasProfile ? 'Editar' : 'Mi Perfil'}
+            {isCompanyUser ? 'Empresa' : hasProfile ? 'Editar' : 'Mi Perfil'}
           </span>
         </button>
       </nav>

@@ -2,18 +2,18 @@ import React, { useState } from 'react';
 import { X, CheckCircle, Coins, Briefcase } from 'lucide-react';
 import { saveJobToFirestore } from '../firebase';
 
-export const PublishJobModal = ({ onClose, onSaveJob }) => {
+export const PublishJobModal = ({ onClose, onSaveJob, currentUser = null, companyProfile = null }) => {
   const [formData, setFormData] = useState({
     title: '',
-    company: '',
+    company: companyProfile?.name || companyProfile?.companyName || currentUser?.name || '',
     type: 'Tiempo Completo',
     isBounty: false,
     juniorFriendly: true,
     salary: '$1,200 - $1,700 / mes',
-    paymentMethods: 'Binance USDT, Zinli, Deel',
+    paymentMethods: companyProfile?.paymentMethods?.join(', ') || 'Binance USDT, Zinli, Deel',
     tags: 'React, TypeScript, Next.js',
     description: '',
-    location: 'Remoto LatAm',
+    location: companyProfile?.location || 'Remoto LatAm',
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -31,11 +31,15 @@ export const PublishJobModal = ({ onClose, onSaveJob }) => {
       .map((m) => m.trim())
       .filter(Boolean);
 
+    const compName = formData.company || companyProfile?.name || 'Tech Startup';
+    const compLogo = companyProfile?.logoText || compName.substring(0, 2).toUpperCase();
+
     const newJob = {
       id: `job-${Date.now()}`,
       title: formData.title || 'Desarrollador Web',
-      company: formData.company || 'Tech Startup',
-      companyLogo: (formData.company || 'TS').substring(0, 2).toUpperCase(),
+      company: compName,
+      companyLogo: compLogo,
+      companyId: companyProfile?.id || null,
       type: formData.isBounty ? 'Micro-Bounty ($)' : formData.type,
       juniorFriendly: formData.juniorFriendly,
       isBounty: formData.isBounty,

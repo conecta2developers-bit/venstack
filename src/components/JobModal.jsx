@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, Clock, Coins, Send, Briefcase } from 'lucide-react';
 
-export const JobModal = ({ job, onClose }) => {
+export const JobModal = ({ job, onClose, onSelectCompany }) => {
   const [applied, setApplied] = useState(false);
   const [pitch, setPitch] = useState('');
   const [portfolioLink, setPortfolioLink] = useState('');
@@ -38,19 +38,25 @@ export const JobModal = ({ job, onClose }) => {
           
           {/* Company & Role */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{
-              width: '54px',
-              height: '54px',
-              borderRadius: '16px',
-              background: '#f0fdfa',
-              border: '1px solid #ccfbf1',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-              fontSize: '16px',
-              color: '#0f766e'
-            }}>
+            <div 
+              onClick={() => onSelectCompany?.(job.company)}
+              style={{
+                width: '54px',
+                height: '54px',
+                borderRadius: '16px',
+                background: '#f0fdfa',
+                border: '1px solid #ccfbf1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: '16px',
+                color: '#0f766e',
+                cursor: onSelectCompany ? 'pointer' : 'default',
+                transition: 'all 0.15s ease'
+              }}
+              title="Ver perfil de la empresa"
+            >
               {job.companyLogo}
             </div>
             <div>
@@ -58,7 +64,17 @@ export const JobModal = ({ job, onClose }) => {
                 {job.title}
               </h2>
               <p style={{ fontSize: '12.5px', color: '#6e6e73', margin: '2px 0 0 0' }}>
-                <strong style={{ color: '#1d1d1f' }}>{job.company}</strong> • {job.location}
+                <strong 
+                  onClick={() => onSelectCompany?.(job.company)}
+                  style={{ 
+                    color: onSelectCompany ? '#2563eb' : '#1d1d1f', 
+                    cursor: onSelectCompany ? 'pointer' : 'default',
+                    textDecoration: onSelectCompany ? 'underline' : 'none'
+                  }}
+                  title="Ver perfil de la empresa"
+                >
+                  {job.company}
+                </strong> • {job.location}
               </p>
             </div>
           </div>

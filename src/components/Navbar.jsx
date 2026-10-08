@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User } from 'lucide-react';
+import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2 } from 'lucide-react';
 
 export const Navbar = ({ 
   isIntro = false,
@@ -11,6 +11,8 @@ export const Navbar = ({
   setSearchQuery,
   currentUser = null,
   userProfile = null,
+  companyProfile = null,
+  isCompanyUser = false,
   hasProfile = false,
   onOpenLogin,
   onOpenRegister,
@@ -104,8 +106,11 @@ export const Navbar = ({
 
           <button
             onClick={onOpenPublishJob}
-            className="apple-btn-secondary"
-            style={{ display: 'none' }}
+            className={isCompanyUser ? "apple-btn-primary" : "apple-btn-secondary"}
+            style={{ 
+              display: 'none',
+              ...(isCompanyUser ? { background: '#2563eb', boxShadow: '0 2px 8px rgba(37,99,235,0.25)' } : {})
+            }}
             id="publish-btn"
           >
             <Briefcase size={13} />
@@ -114,9 +119,9 @@ export const Navbar = ({
 
           {/* User Auth Section */}
           {currentUser ? (() => {
-            const effectiveAvatar = userProfile?.avatar || currentUser?.avatar;
-            const effectiveName = userProfile?.name || currentUser?.name || 'Miembro Venstack';
-            const effectiveRole = userProfile?.role || currentUser?.role || 'Software Engineer';
+            const effectiveAvatar = isCompanyUser ? (companyProfile?.avatar || currentUser?.avatar) : (userProfile?.avatar || currentUser?.avatar);
+            const effectiveName = isCompanyUser ? (companyProfile?.name || companyProfile?.companyName || currentUser?.name || 'Mi Empresa') : (userProfile?.name || currentUser?.name || 'Miembro Venstack');
+            const effectiveRole = isCompanyUser ? 'Empresa Verificada' : (userProfile?.role || currentUser?.role || 'Software Engineer');
             const firstLetter = (effectiveName || 'U').charAt(0).toUpperCase();
 
             return (
@@ -126,15 +131,15 @@ export const Navbar = ({
                     display: 'flex', 
                     alignItems: 'center', 
                     gap: '8px', 
-                    background: '#f5f5f7', 
+                    background: isCompanyUser ? 'rgba(37, 99, 235, 0.08)' : '#f5f5f7', 
                     padding: '4px 12px 4px 6px', 
                     borderRadius: '999px',
-                    border: '1px solid rgba(0,0,0,0.08)',
+                    border: isCompanyUser ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid rgba(0,0,0,0.08)',
                     cursor: 'pointer',
                     transition: 'all 0.16s ease'
                   }}
                   onClick={onOpenCreateProfile}
-                  title="Ver y editar mi perfil profesional"
+                  title={isCompanyUser ? "Ver y editar perfil de mi empresa" : "Ver y editar mi perfil profesional"}
                 >
                   {effectiveAvatar ? (
                     <img 
@@ -149,6 +154,20 @@ export const Navbar = ({
                         flexShrink: 0
                       }} 
                     />
+                  ) : isCompanyUser ? (
+                    <div style={{
+                      width: '26px',
+                      height: '26px',
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Building2 size={13} />
+                    </div>
                   ) : (
                     <div style={{
                       width: '26px',
@@ -168,7 +187,7 @@ export const Navbar = ({
                   )}
                   <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15 }}>
                     <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#1d1d1f' }}>{effectiveName}</span>
-                    <span style={{ fontSize: '9px', color: '#0d9488', fontWeight: 600 }}>{effectiveRole}</span>
+                    <span style={{ fontSize: '9px', color: isCompanyUser ? '#2563eb' : '#0d9488', fontWeight: 700 }}>{effectiveRole}</span>
                   </div>
                 </div>
 
