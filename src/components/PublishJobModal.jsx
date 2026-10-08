@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, Coins, Briefcase } from 'lucide-react';
+import { saveJobToFirestore } from '../firebase';
 
 export const PublishJobModal = ({ onClose, onSaveJob }) => {
   const [formData, setFormData] = useState({
@@ -17,7 +18,7 @@ export const PublishJobModal = ({ onClose, onSaveJob }) => {
 
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const tagsArray = formData.tags
@@ -46,6 +47,12 @@ export const PublishJobModal = ({ onClose, onSaveJob }) => {
       description: formData.description,
       verifiedHiring: true,
     };
+
+    try {
+      await saveJobToFirestore(newJob);
+    } catch (err) {
+      console.warn("Aviso Firestore jobs:", err);
+    }
 
     onSaveJob(newJob);
     setSubmitted(true);

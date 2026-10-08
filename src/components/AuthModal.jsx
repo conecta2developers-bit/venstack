@@ -7,7 +7,8 @@ import {
   loginWithEmail, 
   registerWithEmail, 
   loginWithGoogle, 
-  loginWithGithub 
+  loginWithGithub,
+  saveDeveloperToFirestore 
 } from '../firebase';
 import { updateProfile } from 'firebase/auth';
 
@@ -82,10 +83,60 @@ export const AuthModal = ({
         verified: true,
       };
 
+      // Si es un registro nuevo, guardar perfil profesional directamente en Firestore
+      if (mode === 'register') {
+        const initialDevProfile = {
+          id: `dev-${fbUser.uid}`,
+          userId: fbUser.uid,
+          name: user.name,
+          email: fbUser.email,
+          role: user.role,
+          category: selectedDiscipline === 'company' ? 'software' : selectedDiscipline,
+          level: 'Junior',
+          avatar: user.avatar,
+          city: 'Caracas, VE',
+          verified: true,
+          available: true,
+          availabilityText: workPreference === 'hourly' ? 'Disponible por Horas / Freelance' :
+                            workPreference === 'fulltime' ? 'Disponible Full-time' : 'Disponible (Full-time & Por Horas)',
+          rate: '$1,000 - $1,500 / mes',
+          hourlyRate: '$15 - $22 / hora',
+          bio: `Profesional venezolano en ${selectedDiscipline.toUpperCase()} listo para proyectos y oportunidades remotas.`,
+          setup: {
+            power: 'Inversor / Respaldo Eléctrico Verificado',
+            internet: 'Fibra Óptica de Alta Velocidad',
+            backupInternet: 'Conexión 4G LTE redundante',
+            tested: true,
+          },
+          payments: ['Binance (USDT)', 'Zinli', 'Pago Móvil'],
+          skills: selectedDiscipline === 'uiux' ? ['Figma', 'UI/UX', 'Design Systems', 'Wireframing'] :
+                  selectedDiscipline === 'ai' ? ['Python', 'OpenAI API', 'LangChain', 'FastAPI'] :
+                  selectedDiscipline === 'security' ? ['Pentesting', 'Linux', 'OWASP', 'Ciberseguridad'] :
+                  ['React', 'TypeScript', 'Node.js', 'Next.js'],
+          featuredProject: {
+            title: 'Portafolio Profesional',
+            description: 'Proyectos y soluciones desarrolladas para clientes remotos y globales.',
+            demoUrl: 'https://venstack.dev',
+            githubUrl: 'https://github.com',
+            stars: 12,
+          },
+          endorsements: 1,
+          karma: 150,
+          githubUser: fbUser.email ? fbUser.email.split('@')[0] : 'venstack-dev',
+          createdAt: Date.now()
+        };
+
+        try {
+          await saveDeveloperToFirestore(initialDevProfile);
+        } catch (saveErr) {
+          console.warn("Aviso al guardar perfil en Firestore:", saveErr);
+        }
+      }
+
       setSuccessMessage(
         mode === 'login'
           ? `¡Bienvenido de vuelta, ${user.name}!`
-          : `¡Cuenta creada exitosamente en Firebase! Bienvenido a Venstack.`
+          : `¡Cuenta y perfil creados exitosamente en Firebase!`
       );
 
       setTimeout(() => {

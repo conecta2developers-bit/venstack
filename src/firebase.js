@@ -11,7 +11,13 @@ import {
   signOut,
   onAuthStateChanged
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  setDoc, 
+  onSnapshot 
+} from "firebase/firestore";
 
 // Configuración proporcionada por el usuario
 const firebaseConfig = {
@@ -70,4 +76,78 @@ export const logoutUser = () => {
 
 export const subscribeToAuthChanges = (callback) => {
   return onAuthStateChanged(auth, callback);
+};
+
+// -------------------------------------------------------------
+// FIRESTORE: Desarrolladores (Talento)
+// -------------------------------------------------------------
+export const saveDeveloperToFirestore = async (devData) => {
+  try {
+    const devId = devData.id || `dev-${Date.now()}`;
+    const cleanDev = {
+      ...devData,
+      id: devId,
+      updatedAt: Date.now()
+    };
+    const docRef = doc(db, "developers", devId);
+    await setDoc(docRef, cleanDev, { merge: true });
+    return cleanDev;
+  } catch (error) {
+    console.error("Error guardando desarrollador en Firestore:", error);
+    throw error;
+  }
+};
+
+export const subscribeToDevelopers = (callback) => {
+  const devsCol = collection(db, "developers");
+  return onSnapshot(
+    devsCol, 
+    (snapshot) => {
+      const items = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      callback(items);
+    },
+    (error) => {
+      console.warn("Aviso Firestore developers (posible modo offline o reglas):", error.message);
+    }
+  );
+};
+
+// -------------------------------------------------------------
+// FIRESTORE: Ofertas & Bounties
+// -------------------------------------------------------------
+export const saveJobToFirestore = async (jobData) => {
+  try {
+    const jobId = jobData.id || `job-${Date.now()}`;
+    const cleanJob = {
+      ...jobData,
+      id: jobId,
+      updatedAt: Date.now()
+    };
+    const docRef = doc(db, "jobs", jobId);
+    await setDoc(docRef, cleanJob, { merge: true });
+    return cleanJob;
+  } catch (error) {
+    console.error("Error guardando empleo en Firestore:", error);
+    throw error;
+  }
+};
+
+export const subscribeToJobs = (callback) => {
+  const jobsCol = collection(db, "jobs");
+  return onSnapshot(
+    jobsCol, 
+    (snapshot) => {
+      const items = [];
+      snapshot.forEach((docSnap) => {
+        items.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      callback(items);
+    },
+    (error) => {
+      console.warn("Aviso Firestore jobs (posible modo offline o reglas):", error.message);
+    }
+  );
 };

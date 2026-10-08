@@ -18,7 +18,7 @@ import { CommunityFeed } from './components/CommunityFeed';
 import { CreateProfileModal } from './components/CreateProfileModal';
 import { PublishJobModal } from './components/PublishJobModal';
 import { AuthModal } from './components/AuthModal';
-import { subscribeToAuthChanges, logoutUser } from './firebase';
+import { subscribeToAuthChanges, logoutUser, subscribeToDevelopers, subscribeToJobs } from './firebase';
 
 export function App() {
   const [activeTab, setActiveTab] = useState('developers'); // 'developers' | 'jobs' | 'squads' | 'community'
@@ -50,6 +50,39 @@ export function App() {
     return () => unsubscribe();
   }, []);
 
+  // Data (Initialized with mocks, synchronized with Firestore in real-time)
+  const [developers, setDevelopers] = useState(INITIAL_DEVELOPERS);
+  const [jobs, setJobs] = useState(INITIAL_JOBS);
+  const [squads, setSquads] = useState(INITIAL_SQUADS);
+
+  // Subscribe to real-time developers and jobs from Firestore
+  useEffect(() => {
+    const unsubDevs = subscribeToDevelopers((firestoreDevs) => {
+      if (firestoreDevs && firestoreDevs.length > 0) {
+        setDevelopers((prev) => {
+          const firestoreIds = new Set(firestoreDevs.map((d) => d.id));
+          const existingWithoutOverlap = prev.filter((d) => !firestoreIds.has(d.id));
+          return [...firestoreDevs, ...existingWithoutOverlap];
+        });
+      }
+    });
+
+    const unsubJobs = subscribeToJobs((firestoreJobs) => {
+      if (firestoreJobs && firestoreJobs.length > 0) {
+        setJobs((prev) => {
+          const firestoreIds = new Set(firestoreJobs.map((j) => j.id));
+          const existingWithoutOverlap = prev.filter((j) => !firestoreIds.has(j.id));
+          return [...firestoreJobs, ...existingWithoutOverlap];
+        });
+      }
+    });
+
+    return () => {
+      if (unsubDevs) unsubDevs();
+      if (unsubJobs) unsubJobs();
+    };
+  }, []);
+
   const handleOpenLogin = () => {
     setAuthModalMode('login');
     setIsAuthModalOpen(true);
@@ -60,6 +93,15 @@ export function App() {
     setIsAuthModalOpen(true);
   };
 
+  const handleOpenCreateProfile = () => {
+    if (!currentUser) {
+      setAuthModalMode('register');
+      setIsAuthModalOpen(true);
+    } else {
+      setIsCreateProfileOpen(true);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -68,11 +110,6 @@ export function App() {
     }
     setCurrentUser(null);
   };
-
-  // Data
-  const [developers, setDevelopers] = useState(INITIAL_DEVELOPERS);
-  const [jobs, setJobs] = useState(INITIAL_JOBS);
-  const [squads, setSquads] = useState(INITIAL_SQUADS);
 
   // Filters
   const [devFilter, setDevFilter] = useState('all');
@@ -203,7 +240,7 @@ export function App() {
         isIntro={isIntro}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenCreateProfile={() => setIsCreateProfileOpen(true)}
+        onOpenCreateProfile={handleOpenCreateProfile}
         onOpenPublishJob={() => setIsPublishJobOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
@@ -218,7 +255,7 @@ export function App() {
         isIntro={isIntro}
         onEndIntro={() => setIsIntro(false)}
         onExploreClick={handleScrollToDirectory}
-        onCreateProfileClick={currentUser ? () => setIsCreateProfileOpen(true) : handleOpenRegister}
+        onCreateProfileClick={handleOpenCreateProfile}
         onSelectTab={setActiveTab}
         onSelectDiscipline={handleSelectDiscipline}
       />
@@ -496,6 +533,7 @@ export function App() {
 
       {isCreateProfileOpen && (
         <CreateProfileModal
+          currentUser={currentUser}
           onClose={() => setIsCreateProfileOpen(false)}
           onSaveProfile={handleSaveProfile}
         />
@@ -548,7 +586,7 @@ export function App() {
       <MobileTabBar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenCreateProfile={() => setIsCreateProfileOpen(true)}
+        onOpenCreateProfile={handleOpenCreateProfile}
       />
 
       <style>{`

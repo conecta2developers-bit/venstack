@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { X, CheckCircle, Zap } from 'lucide-react';
+import { X, CheckCircle, Zap, AlertCircle } from 'lucide-react';
+import { saveDeveloperToFirestore } from '../firebase';
 
-export const CreateProfileModal = ({ onClose, onSaveProfile }) => {
+export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    role: '',
+    name: currentUser?.name || '',
+    role: currentUser?.role || 'Frontend Developer',
+    category: 'software',
     level: 'Junior',
     city: 'Caracas, VE',
     bio: '',
-    rate: '$800 - $1,200 / mes',
-    hourlyRate: '$12 - $18 / hora',
+    rate: '$1,000 - $1,500 / mes',
+    hourlyRate: '$15 - $22 / hora',
     powerSetup: 'Inversor 2.4kVA con batería LiFePO4',
     internetSetup: 'Fibra Óptica 400 Mbps Simétrica',
     backupMobile: 'Línea 4G LTE Digitel / Movistar',
@@ -21,23 +23,30 @@ export const CreateProfileModal = ({ onClose, onSaveProfile }) => {
     payments: ['Binance (USDT)', 'Zinli', 'Pago Móvil'],
   });
 
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
 
     const skillsArray = formData.skills
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const devId = currentUser?.uid ? `dev-${currentUser.uid}` : `dev-${Date.now()}`;
     const newDev = {
-      id: `dev-${Date.now()}`,
-      name: formData.name || 'Desarrollador Criollo',
+      id: devId,
+      userId: currentUser?.uid || null,
+      name: formData.name || currentUser?.name || 'Desarrollador Criollo',
       role: formData.role || 'Frontend Developer',
+      category: formData.category || 'software',
       level: formData.level,
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
-      city: formData.city,
+      avatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
+      city: formData.city || 'Caracas, VE',
       verified: true,
       available: true,
       availabilityText: 'Disponible de inmediato',
@@ -61,14 +70,22 @@ export const CreateProfileModal = ({ onClose, onSaveProfile }) => {
       },
       endorsements: 1,
       karma: 120,
-      githubUser: 'nuevodev',
+      githubUser: currentUser?.email ? currentUser.email.split('@')[0] : 'nuevodev',
+      createdAt: Date.now()
     };
+
+    try {
+      await saveDeveloperToFirestore(newDev);
+    } catch (err) {
+      console.warn("Aviso Firestore al guardar (se guardará también localmente):", err);
+    }
 
     onSaveProfile(newDev);
     setSubmitted(true);
     setTimeout(() => {
       onClose();
     }, 1400);
+    setLoading(false);
   };
 
   return (
@@ -116,6 +133,40 @@ export const CreateProfileModal = ({ onClose, onSaveProfile }) => {
                 <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#86868b' }}>
                   1. Perfil Profesional
                 </span>
+
+                {/* Disciplina Principal */}
+                <div>
+                  <label style={{ fontWeight: 600, color: '#424245', display: 'block', marginBottom: '4px' }}>
+                    Área o Disciplina Tech
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px' }}>
+                    {[
+                      { id: 'software', label: '💻 Software & Código' },
+                      { id: 'uiux', label: '🎨 UI/UX & Producto' },
+                      { id: 'ai', label: '🤖 Inteligencia Artificial' },
+                      { id: 'security', label: '🛡️ Ciberseguridad' },
+                    ].map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, category: cat.id })}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: '8px',
+                          border: formData.category === cat.id ? '1.5px solid #0d9488' : '1px solid rgba(0,0,0,0.12)',
+                          background: formData.category === cat.id ? '#f0fdfa' : '#ffffff',
+                          color: formData.category === cat.id ? '#0f766e' : '#4b5563',
+                          fontWeight: formData.category === cat.id ? 700 : 500,
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          textAlign: 'left'
+                        }}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <div>
@@ -319,6 +370,7 @@ export const CreateProfileModal = ({ onClose, onSaveProfile }) => {
 
               <button
                 type="submit"
+                disabled={loading}
                 className="apple-btn-primary"
                 style={{
                   width: '100%',
@@ -326,10 +378,11 @@ export const CreateProfileModal = ({ onClose, onSaveProfile }) => {
                   justifyContent: 'center',
                   borderRadius: '12px',
                   fontSize: '13px',
-                  marginTop: '8px'
+                  marginTop: '8px',
+                  opacity: loading ? 0.75 : 1
                 }}
               >
-                Publicar Perfil Verificado
+                {loading ? 'Guardando en Firebase...' : 'Publicar Perfil Verificado'}
               </button>
             </form>
           )}
