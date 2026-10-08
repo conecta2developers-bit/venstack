@@ -131,14 +131,15 @@ body {
 }
 
 .apple-header-inner {
-  max-width: 1200px;
+  max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
+  box-sizing: border-box;
 }
 
 /* Apple Segmented Nav Control */
@@ -152,9 +153,9 @@ body {
 }
 
 .apple-nav-btn {
-  padding: 6px 14px;
+  padding: 5px 12px;
   border-radius: var(--radius-pill);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--apple-text-secondary);
   background: transparent;
@@ -162,7 +163,7 @@ body {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.18s var(--ease-apple);
   white-space: nowrap;
 }
@@ -236,8 +237,11 @@ body {
   background: rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: var(--radius-pill);
-  padding: 6px 12px;
-  width: 240px;
+  padding: 5px 10px;
+  width: 160px;
+  min-width: 90px;
+  flex-shrink: 1;
+  box-sizing: border-box;
   transition: all 0.2s ease;
 }
 
@@ -245,7 +249,7 @@ body {
   background: #ffffff;
   border-color: var(--brand-teal);
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
-  width: 270px;
+  width: 195px;
 }
 
 .apple-search-input {

@@ -31,7 +31,8 @@ export const Navbar = ({
             alignItems: 'center', 
             cursor: 'pointer', 
             userSelect: 'none',
-            overflow: 'visible' 
+            overflow: 'visible',
+            flexShrink: 0
           }}
           title="Venstack — Venezuela Tech Community"
         >
@@ -83,7 +84,7 @@ export const Navbar = ({
         </nav>
 
         {/* Actions & Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
           
           {/* Header Search Box */}
           <div 
@@ -91,7 +92,7 @@ export const Navbar = ({
             style={{ 
               display: 'none',
               height: '35px',
-              padding: '0 12px',
+              padding: '0 10px',
               boxSizing: 'border-box'
             }} 
             id="header-search"
@@ -99,7 +100,7 @@ export const Navbar = ({
             <Search size={14} color="#86868b" />
             <input
               type="text"
-              placeholder="Buscar por rol, stack o ciudad..."
+              placeholder="Buscar por rol, stack..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="apple-search-input"
@@ -121,7 +122,7 @@ export const Navbar = ({
             style={{ 
               display: 'none',
               height: '35px',
-              padding: '0 13px',
+              padding: '0 12px',
               borderRadius: '999px',
               border: isCompanyUser ? 'none' : '1px solid rgba(0, 0, 0, 0.12)',
               background: isCompanyUser ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : '#ffffff',
@@ -134,9 +135,11 @@ export const Navbar = ({
               boxShadow: isCompanyUser ? '0 2px 8px rgba(37,99,235,0.22)' : '0 1px 2px rgba(0,0,0,0.04)',
               transition: 'all 0.16s ease',
               whiteSpace: 'nowrap',
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              flexShrink: 0
             }}
             id="publish-btn"
+            title="Publicar Oferta de Empleo o Bounty"
           >
             <Briefcase size={13.5} color={isCompanyUser ? '#ffffff' : '#4b5563'} />
             <span>Publicar Oferta</span>
@@ -149,7 +152,7 @@ export const Navbar = ({
               style={{ 
                 display: 'none',
                 height: '35px',
-                padding: '0 13px',
+                padding: '0 12px',
                 borderRadius: '999px',
                 border: '1px solid rgba(0, 0, 0, 0.12)',
                 background: '#ffffff',
@@ -162,7 +165,8 @@ export const Navbar = ({
                 boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
                 transition: 'all 0.16s ease',
                 whiteSpace: 'nowrap',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                flexShrink: 0
               }}
               id="install-pwa-btn"
               title="Instalar Venstack en tu pantalla de inicio"
@@ -180,20 +184,22 @@ export const Navbar = ({
             const firstLetter = (effectiveName || 'U').charAt(0).toUpperCase();
 
             return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                 <div 
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '7px', 
+                    gap: '6px', 
                     height: '35px',
                     boxSizing: 'border-box',
                     background: isCompanyUser ? 'rgba(37, 99, 235, 0.08)' : '#f5f5f7', 
-                    padding: '0 11px 0 5px', 
+                    padding: '0 10px 0 5px', 
                     borderRadius: '999px',
                     border: isCompanyUser ? '1px solid rgba(37, 99, 235, 0.25)' : '1px solid rgba(0,0,0,0.1)',
                     cursor: 'pointer',
-                    transition: 'all 0.16s ease'
+                    transition: 'all 0.16s ease',
+                    flexShrink: 0,
+                    maxWidth: '160px'
                   }}
                   onClick={onOpenCreateProfile}
                   title={isCompanyUser ? "Ver y editar perfil de mi empresa" : "Ver y editar mi perfil profesional"}
@@ -242,11 +248,11 @@ export const Navbar = ({
                       {firstLetter}
                     </div>
                   )}
-                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, justifyContent: 'center' }}>
-                    <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#1d1d1f', maxWidth: '110px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, justifyContent: 'center', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#1d1d1f', maxWidth: '95px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {effectiveName}
                     </span>
-                    <span style={{ fontSize: '8.5px', color: isCompanyUser ? '#2563eb' : '#0d9488', fontWeight: 700 }}>
+                    <span style={{ fontSize: '8.5px', color: isCompanyUser ? '#2563eb' : '#0d9488', fontWeight: 700, whiteSpace: 'nowrap' }}>
                       {effectiveRole}
                     </span>
                   </div>
@@ -258,6 +264,7 @@ export const Navbar = ({
                   style={{
                     width: '35px',
                     height: '35px',
+                    minWidth: '35px',
                     boxSizing: 'border-box',
                     background: 'rgba(0,0,0,0.03)',
                     border: '1px solid rgba(0,0,0,0.06)',
@@ -286,7 +293,7 @@ export const Navbar = ({
               </div>
             );
           })() : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
               <button
                 onClick={onOpenLogin}
                 className="apple-btn-secondary"
@@ -297,7 +304,8 @@ export const Navbar = ({
                   boxSizing: 'border-box',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px'
+                  gap: '6px',
+                  flexShrink: 0
                 }}
               >
                 <LogIn size={13} />
@@ -314,7 +322,8 @@ export const Navbar = ({
                   boxSizing: 'border-box',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px'
+                  gap: '6px',
+                  flexShrink: 0
                 }}
               >
                 <Plus size={13} strokeWidth={2.5} />
@@ -332,6 +341,20 @@ export const Navbar = ({
           #header-search { display: flex !important; }
           #publish-btn { display: inline-flex !important; }
           #install-pwa-btn { display: inline-flex !important; }
+        }
+        @media (max-width: 1280px) {
+          #header-search { width: 130px !important; }
+          .apple-nav-btn { padding: 5px 9px !important; font-size: 11.5px !important; }
+        }
+        @media (max-width: 1140px) {
+          #install-pwa-btn span { display: none !important; }
+          #install-pwa-btn { padding: 0 10px !important; }
+          #header-search { width: 115px !important; }
+        }
+        @media (max-width: 1024px) {
+          #publish-btn span { display: none !important; }
+          #publish-btn { padding: 0 10px !important; }
+          #header-search { display: none !important; }
         }
       `}</style>
     </header>
