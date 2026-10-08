@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2 } from 'lucide-react';
+import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2, Smartphone } from 'lucide-react';
 
 export const Navbar = ({ 
   isIntro = false,
@@ -7,6 +7,7 @@ export const Navbar = ({
   setActiveTab, 
   onOpenCreateProfile, 
   onOpenPublishJob, 
+  onOpenPwaInstall,
   searchQuery, 
   setSearchQuery,
   currentUser = null,
@@ -116,6 +117,19 @@ export const Navbar = ({
             <Briefcase size={13} />
             <span>Publicar Oferta</span>
           </button>
+
+          {onOpenPwaInstall && (
+            <button
+              onClick={onOpenPwaInstall}
+              className="apple-btn-secondary"
+              style={{ display: 'none' }}
+              id="install-pwa-btn"
+              title="Instalar Venstack en tu pantalla de inicio"
+            >
+              <Smartphone size={13} color="#0d9488" />
+              <span>Instalar App</span>
+            </button>
+          )}
 
           {/* User Auth Section */}
           {currentUser ? (() => {
@@ -240,6 +254,7 @@ export const Navbar = ({
           #desktop-nav { display: flex !important; }
           #header-search { display: flex !important; }
           #publish-btn { display: inline-flex !important; }
+          #install-pwa-btn { display: inline-flex !important; }
         }
       `}</style>
     </header>

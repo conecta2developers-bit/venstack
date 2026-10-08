@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Smartphone } from 'lucide-react';
 
 import { INITIAL_DEVELOPERS, INITIAL_JOBS, INITIAL_SQUADS, INITIAL_COMPANIES } from './data/mockData';
 import { Navbar } from './components/Navbar';
@@ -16,6 +16,7 @@ import { CreateProfileModal } from './components/CreateProfileModal';
 import { PublishJobModal } from './components/PublishJobModal';
 import { CompanyProfileModal } from './components/CompanyProfileModal';
 import { CompanyDetailModal } from './components/CompanyDetailModal';
+import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { AuthModal } from './components/AuthModal';
 import { 
   subscribeToAuthChanges, 
@@ -146,6 +147,7 @@ export function App() {
   const [isCreateProfileOpen, setIsCreateProfileOpen] = useState(false);
   const [isCompanyProfileOpen, setIsCompanyProfileOpen] = useState(false);
   const [isPublishJobOpen, setIsPublishJobOpen] = useState(false);
+  const [isManualPwaOpen, setIsManualPwaOpen] = useState(false);
 
   // Cinematic 2-second fullscreen onboarding transition
   const [isIntro, setIsIntro] = useState(true);
@@ -385,6 +387,7 @@ export function App() {
         setActiveTab={setActiveTab}
         onOpenCreateProfile={handleOpenCreateProfile}
         onOpenPublishJob={() => setIsPublishJobOpen(true)}
+        onOpenPwaInstall={() => setIsManualPwaOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
@@ -754,6 +757,29 @@ export function App() {
         <p style={{ fontSize: '12px', color: '#6e6e73', margin: 0, fontWeight: 500, maxWidth: '540px', lineHeight: 1.5 }}>
           Comunidad y red de profesionales en Software, UI/UX, Inteligencia Artificial y Ciberseguridad. Impulsando el talento de Venezuela para el mundo 🇻🇪
         </p>
+
+        <button
+          onClick={() => setIsManualPwaOpen(true)}
+          style={{
+            background: 'rgba(13, 148, 136, 0.08)',
+            border: '1px solid rgba(13, 148, 136, 0.2)',
+            borderRadius: '999px',
+            padding: '6px 14px',
+            fontSize: '11.5px',
+            fontWeight: 700,
+            color: '#0d9488',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            transition: 'all 0.16s ease'
+          }}
+          title="Instalar Venstack como aplicación en tu pantalla de inicio"
+        >
+          <Smartphone size={13} />
+          <span>Instalar App en tu Celular o PC</span>
+        </button>
+
         <span style={{ fontSize: '11px', color: '#a1a1a6' }}>
           © {new Date().getFullYear()} Venstack. Todos los derechos reservados.
         </span>
@@ -766,6 +792,12 @@ export function App() {
         onOpenCreateProfile={handleOpenCreateProfile}
         hasProfile={hasProfile}
         isCompanyUser={isCompanyUser}
+      />
+
+      {/* Progressive Web App (PWA) Installer */}
+      <PwaInstallPrompt
+        manualTrigger={isManualPwaOpen}
+        onManualClose={() => setIsManualPwaOpen(false)}
       />
 
       <style>{`
