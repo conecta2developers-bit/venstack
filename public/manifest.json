@@ -1,9 +1,10 @@
 {
-  "name": "Venstack — Ecosistema Tech Venezuela",
+  "name": "Venstack",
   "short_name": "Venstack",
   "description": "Comunidad y red de profesionales en Software, UI/UX, IA y Ciberseguridad de Venezuela.",
   "start_url": "/",
   "id": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
@@ -12,16 +13,22 @@
   "categories": ["business", "developer tools", "productivity", "social"],
   "icons": [
     {
-      "src": "/img/venstack.png",
+      "src": "/img/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/img/venstack.png",
+      "src": "/img/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/img/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
@@ -30,14 +37,14 @@
       "short_name": "Talento",
       "description": "Explorar desarrolladores venezolanos",
       "url": "/#developers",
-      "icons": [{ "src": "/img/venstack.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Empleos & Bounties",
       "short_name": "Empleos",
       "description": "Ver ofertas de trabajo remoto y bounties",
       "url": "/#jobs",
-      "icons": [{ "src": "/img/venstack.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/img/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

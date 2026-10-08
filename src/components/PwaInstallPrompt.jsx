@@ -131,9 +131,9 @@ export const PwaInstallPrompt = ({ manualTrigger = false, onManualClose }) => {
                   overflow: 'hidden'
                 }}>
                   <img 
-                    src="/img/venstack.png" 
+                    src="/img/icon-192.png" 
                     alt="Venstack PWA" 
-                    style={{ width: '38px', height: '38px', objectFit: 'contain' }} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                   />
                 </div>
 
@@ -286,13 +286,13 @@ export const PwaInstallPrompt = ({ manualTrigger = false, onManualClose }) => {
               
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <img 
-                  src="/img/venstack.png" 
+                  src="/img/icon-192.png" 
                   alt="Venstack" 
-                  style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#0d9488', padding: '6px', objectFit: 'contain' }} 
+                  style={{ width: '48px', height: '48px', borderRadius: '14px', objectFit: 'contain' }} 
                 />
                 <div>
                   <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-                    Venstack Criollo PWA
+                    Venstack
                   </h4>
                   <p style={{ fontSize: '12px', color: '#6e6e73', margin: '2px 0 0 0' }}>
                     Agrega la aplicación a tu inicio para abrirla como una app nativa.
