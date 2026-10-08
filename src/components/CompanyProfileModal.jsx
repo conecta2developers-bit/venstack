@@ -430,7 +430,7 @@ export const CompanyProfileModal = ({
                   </div>
 
                   {/* Company Name & Industry */}
-                  <div style={{ flex: 1, minWidth: '220px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ flex: 1, minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
                       <label style={{ fontSize: '11px', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '4px' }}>
                         Nombre Comercial de la Empresa / Startup *
@@ -442,7 +442,18 @@ export const CompanyProfileModal = ({
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         placeholder="Ej. Fintech Caribe o Cognitive Studio"
                         className="apple-input"
-                        style={{ fontSize: '13px', padding: '8px 12px' }}
+                        style={{
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          padding: '10px 14px',
+                          borderRadius: '10px',
+                          border: '1px solid rgba(0,0,0,0.14)',
+                          fontSize: '13px',
+                          background: '#ffffff',
+                          color: '#1d1d1f',
+                          outline: 'none',
+                          display: 'block'
+                        }}
                       />
                     </div>
 
@@ -454,7 +465,20 @@ export const CompanyProfileModal = ({
                         value={formData.industry}
                         onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
                         className="apple-input"
-                        style={{ fontSize: '13px', padding: '8px 12px', background: '#ffffff' }}
+                        style={{
+                          width: '100%',
+                          boxSizing: 'border-box',
+                          padding: '10px 14px',
+                          borderRadius: '10px',
+                          border: '1px solid rgba(0,0,0,0.14)',
+                          fontSize: '13px',
+                          background: '#ffffff',
+                          color: '#1d1d1f',
+                          outline: 'none',
+                          cursor: 'pointer',
+                          display: 'block',
+                          height: '42px'
+                        }}
                       >
                         {INDUSTRY_OPTIONS.map((ind) => (
                           <option key={ind} value={ind}>{ind}</option>
@@ -475,13 +499,24 @@ export const CompanyProfileModal = ({
                       onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
                       placeholder="https://ejemplo.com/logo.png"
                       className="apple-input"
-                      style={{ fontSize: '12px' }}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.14)',
+                        fontSize: '12.5px',
+                        background: '#ffffff',
+                        color: '#1d1d1f',
+                        outline: 'none',
+                        display: 'block'
+                      }}
                     />
                   </div>
                 )}
 
                 {/* Location, Size & Website Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                   <div>
                     <label style={{ fontSize: '11px', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '4px' }}>
                       Ubicación / Modalidad
@@ -492,7 +527,18 @@ export const CompanyProfileModal = ({
                       onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                       placeholder="Caracas, VE • Remoto"
                       className="apple-input"
-                      style={{ fontSize: '12.5px' }}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.14)',
+                        fontSize: '13px',
+                        background: '#ffffff',
+                        color: '#1d1d1f',
+                        outline: 'none',
+                        display: 'block'
+                      }}
                     />
                   </div>
 
@@ -504,7 +550,20 @@ export const CompanyProfileModal = ({
                       value={formData.companySize}
                       onChange={(e) => setFormData({ ...formData, companySize: e.target.value })}
                       className="apple-input"
-                      style={{ fontSize: '12.5px', background: '#ffffff' }}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.14)',
+                        fontSize: '13px',
+                        background: '#ffffff',
+                        color: '#1d1d1f',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        display: 'block',
+                        height: '42px'
+                      }}
                     >
                       {COMPANY_SIZES.map((size) => (
                         <option key={size} value={size}>{size}</option>
@@ -522,7 +581,18 @@ export const CompanyProfileModal = ({
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                       placeholder="https://miempresa.com o https://linkedin.com/company/..."
                       className="apple-input"
-                      style={{ fontSize: '12.5px' }}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.14)',
+                        fontSize: '13px',
+                        background: '#ffffff',
+                        color: '#1d1d1f',
+                        outline: 'none',
+                        display: 'block'
+                      }}
                     />
                   </div>
                 </div>
@@ -533,12 +603,27 @@ export const CompanyProfileModal = ({
                     Sobre la Empresa & Misión (¿Qué construyen y por qué unirse?)
                   </label>
                   <textarea 
-                    rows={3}
+                    rows={4}
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Describe los productos, servicios o misión de tu compañía para motivar al talento a postularse..."
                     className="apple-input"
-                    style={{ fontSize: '12.5px', resize: 'vertical', lineHeight: 1.5 }}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      padding: '12px 14px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(0,0,0,0.14)',
+                      fontSize: '13px',
+                      background: '#ffffff',
+                      color: '#1d1d1f',
+                      outline: 'none',
+                      minHeight: '86px',
+                      resize: 'vertical',
+                      lineHeight: 1.5,
+                      fontFamily: 'inherit',
+                      display: 'block'
+                    }}
                   />
                 </div>
               </div>
@@ -557,7 +642,18 @@ export const CompanyProfileModal = ({
                   onChange={(e) => setFormData({ ...formData, techStack: e.target.value })}
                   placeholder="React, Next.js, Node.js, Python, AWS, Figma, Docker"
                   className="apple-input"
-                  style={{ fontSize: '13px' }}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '10px 14px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(0,0,0,0.14)',
+                    fontSize: '13px',
+                    background: '#ffffff',
+                    color: '#1d1d1f',
+                    outline: 'none',
+                    display: 'block'
+                  }}
                 />
               </div>
 

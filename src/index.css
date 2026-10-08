@@ -537,6 +537,47 @@ body {
   flex: 1 1 auto;
 }
 
+/* Apple-style Form Controls */
+.apple-input {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 10px 14px !important;
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.14) !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-family: inherit !important;
+  color: #1d1d1f !important;
+  outline: none !important;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  display: block !important;
+}
+
+.apple-input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16) !important;
+  background-color: #ffffff !important;
+}
+
+.apple-input::placeholder {
+  color: #9ca3af !important;
+}
+
+select.apple-input {
+  cursor: pointer !important;
+  appearance: auto !important;
+  -webkit-appearance: menulist !important;
+  height: 40px !important;
+}
+
+textarea.apple-input {
+  min-height: 84px !important;
+  resize: vertical !important;
+  line-height: 1.5 !important;
+  font-family: inherit !important;
+}
+
 .apple-modal-footer {
   position: sticky;
   bottom: 0;
