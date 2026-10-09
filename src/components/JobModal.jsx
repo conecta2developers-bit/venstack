@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
-import { X, CheckCircle, Clock, Coins, Send, Briefcase } from 'lucide-react';
+import { X, CheckCircle, Clock, Coins, Send, Briefcase, Users } from 'lucide-react';
 
-export const JobModal = ({ job, onClose, onSelectCompany, currentUser = null, userProfile = null, onApplyToJob }) => {
+export const JobModal = ({
+  job,
+  onClose,
+  onSelectCompany,
+  currentUser = null,
+  userProfile = null,
+  onApplyToJob,
+  isCompanyUser = false,
+  onViewApplicants,
+  applicantsCount = 0
+}) => {
   const [applied, setApplied] = useState(false);
   const [candidateName, setCandidateName] = useState(userProfile?.name || currentUser?.name || '');
   const [candidateEmail, setCandidateEmail] = useState(currentUser?.email || '');
@@ -164,6 +174,57 @@ export const JobModal = ({ job, onClose, onSelectCompany, currentUser = null, us
               ))}
             </div>
           </div>
+
+          {/* Recruiter / Company View Box */}
+          {isCompanyUser && (
+            <div style={{
+              padding: '14px 16px',
+              background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(30, 64, 175, 0.08) 100%)',
+              border: '1.5px solid rgba(37, 99, 235, 0.2)',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}>
+              <div>
+                <span style={{ fontSize: '10.5px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#1d4ed8', display: 'block' }}>
+                  Panel de Empresa / Reclutador
+                </span>
+                <p style={{ margin: '2px 0 0', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>
+                  {applicantsCount === 1 ? '1 candidato postulado' : `${applicantsCount} candidatos postulados`}
+                </p>
+              </div>
+
+              {onViewApplicants && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onViewApplicants(job);
+                  }}
+                  style={{
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)'
+                  }}
+                >
+                  <Users size={14} />
+                  <span>Ver Postulantes ({applicantsCount})</span>
+                </button>
+              )}
+            </div>
+          )}
 
           {/* 1-Click Apply Form or Confirmation */}
           <div style={{ marginTop: '4px' }}>

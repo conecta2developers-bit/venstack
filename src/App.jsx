@@ -888,14 +888,26 @@ export function App() {
 
             {/* Jobs Grid */}
             <div className="cards-grid">
-              {filteredJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  onSelectJob={(j) => setSelectedJob(j)}
-                  onSelectCompany={handleSelectCompany}
-                />
-              ))}
+              {filteredJobs.map((job) => {
+                const isOwnJob = isCompanyUser && (
+                  job.companyId === currentCompanyProfile?.id ||
+                  job.company?.toLowerCase() === currentCompanyProfile?.name?.toLowerCase()
+                );
+                const count = applications.filter(a => a.jobId === job.id).length;
+                return (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onSelectJob={(j) => setSelectedJob(j)}
+                    onSelectCompany={handleSelectCompany}
+                    isOwnJob={isOwnJob}
+                    applicantsCount={count}
+                    onViewApplicants={() => {
+                      setIsApplicantsModalOpen(true);
+                    }}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
@@ -988,6 +1000,12 @@ export function App() {
           currentUser={currentUser}
           userProfile={userProfile}
           onApplyToJob={handleApplyToJob}
+          isCompanyUser={isCompanyUser}
+          applicantsCount={applications.filter(a => a.jobId === selectedJob.id).length}
+          onViewApplicants={(job) => {
+            setSelectedJob(null);
+            setIsApplicantsModalOpen(true);
+          }}
         />
       )}
 

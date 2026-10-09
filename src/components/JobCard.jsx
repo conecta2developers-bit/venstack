@@ -1,7 +1,14 @@
 import React from 'react';
-import { Clock, ArrowRight, Coins, Briefcase } from 'lucide-react';
+import { Clock, ArrowRight, Coins, Briefcase, Users } from 'lucide-react';
 
-export const JobCard = ({ job, onSelectJob, onSelectCompany }) => {
+export const JobCard = ({
+  job,
+  onSelectJob,
+  onSelectCompany,
+  isOwnJob = false,
+  applicantsCount = 0,
+  onViewApplicants
+}) => {
   return (
     <div 
       onClick={() => onSelectJob(job)}
@@ -190,26 +197,57 @@ export const JobCard = ({ job, onSelectJob, onSelectCompany }) => {
           {job.postedAt}
         </span>
 
-        <button 
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelectJob(job);
-          }}
-          style={{
-            fontSize: '11.5px',
-            fontWeight: 600,
-            color: '#0d9488',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '3px'
-          }}
-        >
-          <span>Postularme</span>
-          <ArrowRight size={12} />
-        </button>
+        {isOwnJob ? (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onViewApplicants) {
+                onViewApplicants(job);
+              } else {
+                onSelectJob(job);
+              }
+            }}
+            style={{
+              fontSize: '11.5px',
+              fontWeight: 700,
+              color: '#2563eb',
+              background: 'rgba(37, 99, 235, 0.08)',
+              padding: '4px 10px',
+              borderRadius: '8px',
+              border: '1px solid rgba(37, 99, 235, 0.15)',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '5px',
+              transition: 'all 0.15s ease'
+            }}
+            title="Ver postulantes a esta vacante"
+          >
+            <Users size={12} />
+            <span>Postulantes ({applicantsCount})</span>
+          </button>
+        ) : (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelectJob(job);
+            }}
+            style={{
+              fontSize: '11.5px',
+              fontWeight: 600,
+              color: '#0d9488',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px'
+            }}
+          >
+            <span>Postularme</span>
+            <ArrowRight size={12} />
+          </button>
+        )}
       </div>
     </div>
   );
