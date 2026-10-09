@@ -61,10 +61,55 @@ export function App() {
     return () => unsubscribe();
   }, []);
 
-  // Data (Initialized with mocks, synchronized with Firestore in real-time)
-  const [developers, setDevelopers] = useState(INITIAL_DEVELOPERS);
-  const [jobs, setJobs] = useState(INITIAL_JOBS);
-  const [companies, setCompanies] = useState(INITIAL_COMPANIES);
+  // Data (Initialized with localStorage or mock data, synchronized with Firestore in real-time)
+  const [developers, setDevelopers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('venstack_custom_developers');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customIds = new Set(parsed.map((d) => d.id));
+          return [...parsed, ...INITIAL_DEVELOPERS.filter((d) => !customIds.has(d.id))];
+        }
+      }
+    } catch (e) {
+      console.warn('Aviso cargando desarrolladores locales:', e);
+    }
+    return INITIAL_DEVELOPERS;
+  });
+
+  const [jobs, setJobs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('venstack_custom_jobs');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customIds = new Set(parsed.map((j) => j.id));
+          return [...parsed, ...INITIAL_JOBS.filter((j) => !customIds.has(j.id))];
+        }
+      }
+    } catch (e) {
+      console.warn('Aviso cargando empleos locales:', e);
+    }
+    return INITIAL_JOBS;
+  });
+
+  const [companies, setCompanies] = useState(() => {
+    try {
+      const saved = localStorage.getItem('venstack_custom_companies');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customIds = new Set(parsed.map((c) => c.id));
+          return [...parsed, ...INITIAL_COMPANIES.filter((c) => !customIds.has(c.id))];
+        }
+      }
+    } catch (e) {
+      console.warn('Aviso cargando empresas locales:', e);
+    }
+    return INITIAL_COMPANIES;
+  });
+
   const [squads, setSquads] = useState(INITIAL_SQUADS);
 
   // Subscribe to real-time developers, jobs and companies from Firestore
@@ -261,7 +306,17 @@ export function App() {
   };
 
   const handleSaveProfile = (newDev) => {
-    setDevelopers((prev) => [newDev, ...prev.filter((d) => d.id !== newDev.id)]);
+    setDevelopers((prev) => {
+      const updated = [newDev, ...prev.filter((d) => d.id !== newDev.id)];
+      try {
+        const custom = JSON.parse(localStorage.getItem('venstack_custom_developers') || '[]');
+        const filtered = custom.filter((d) => d.id !== newDev.id);
+        localStorage.setItem('venstack_custom_developers', JSON.stringify([newDev, ...filtered]));
+      } catch (err) {
+        console.warn('Aviso guardando desarrollador en localStorage:', err);
+      }
+      return updated;
+    });
     if (currentUser) {
       setCurrentUser((prev) => ({
         ...prev,
@@ -273,7 +328,17 @@ export function App() {
   };
 
   const handleSaveJob = (newJob) => {
-    setJobs([newJob, ...jobs]);
+    setJobs((prev) => {
+      const updated = [newJob, ...prev.filter((j) => j.id !== newJob.id)];
+      try {
+        const custom = JSON.parse(localStorage.getItem('venstack_custom_jobs') || '[]');
+        const filtered = custom.filter((j) => j.id !== newJob.id);
+        localStorage.setItem('venstack_custom_jobs', JSON.stringify([newJob, ...filtered]));
+      } catch (err) {
+        console.warn('Aviso guardando empleo en localStorage:', err);
+      }
+      return updated;
+    });
   };
 
   // Filter developers
@@ -458,17 +523,32 @@ export function App() {
       }
     }
 
-    // Clean up local developers state
-    setDevelopers((prev) => prev.filter((d) => d.userId !== savedCompany.userId && d.id !== `dev-${savedCompany.userId}`));
+    // Clean up local developers state & localStorage
+    setDevelopers((prev) => {
+      const updated = prev.filter((d) => d.userId !== savedCompany.userId && d.id !== `dev-${savedCompany.userId}`);
+      try {
+        const custom = JSON.parse(localStorage.getItem('venstack_custom_developers') || '[]');
+        const filtered = custom.filter((d) => d.userId !== savedCompany.userId && d.id !== `dev-${savedCompany.userId}`);
+        localStorage.setItem('venstack_custom_developers', JSON.stringify(filtered));
+      } catch (e) {}
+      return updated;
+    });
 
     setCompanies((prev) => {
       const idx = prev.findIndex((c) => c.id === savedCompany.id);
+      let updated;
       if (idx >= 0) {
-        const updated = [...prev];
+        updated = [...prev];
         updated[idx] = savedCompany;
-        return updated;
+      } else {
+        updated = [savedCompany, ...prev];
       }
-      return [savedCompany, ...prev];
+      try {
+        const custom = JSON.parse(localStorage.getItem('venstack_custom_companies') || '[]');
+        const filtered = custom.filter((c) => c.id !== savedCompany.id);
+        localStorage.setItem('venstack_custom_companies', JSON.stringify([savedCompany, ...filtered]));
+      } catch (e) {}
+      return updated;
     });
 
     if (currentUser) {

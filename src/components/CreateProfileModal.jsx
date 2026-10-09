@@ -131,26 +131,35 @@ export const CreateProfileModal = ({ onClose, onSaveProfile, currentUser, existi
         description: formData.projectDesc,
         demoUrl: formData.projectDemo,
         githubUrl: formData.projectGithub,
-        stars: 10,
+        stars: existingDev?.featuredProject?.stars || 10,
       },
-      endorsements: 1,
-      karma: 120,
-      githubUser: currentUser?.email ? currentUser.email.split('@')[0] : 'nuevodev',
-      createdAt: Date.now()
+      endorsements: existingDev?.endorsements || 1,
+      karma: existingDev?.karma || 120,
+      githubUser: currentUser?.email ? currentUser.email.split('@')[0] : (existingDev?.githubUser || 'nuevodev'),
+      createdAt: existingDev?.createdAt || Date.now(),
+      updatedAt: Date.now()
     };
 
     try {
-      await saveDeveloperToFirestore(newDev);
-    } catch (err) {
-      console.warn("Aviso Firestore al guardar (se guardará también localmente):", err);
-    }
+      // 1. Guardar y actualizar el estado visual de inmediato
+      onSaveProfile(newDev);
 
-    onSaveProfile(newDev);
-    setSubmitted(true);
-    setTimeout(() => {
-      onClose();
-    }, 1400);
-    setLoading(false);
+      // 2. Intentar guardar en Firestore con timeout de seguridad (no bloqueará la UI)
+      await saveDeveloperToFirestore(newDev);
+
+      setSubmitted(true);
+      setTimeout(() => {
+        onClose();
+      }, 1100);
+    } catch (err) {
+      console.warn("Aviso Firestore al guardar (perfil guardado localmente):", err);
+      setSubmitted(true);
+      setTimeout(() => {
+        onClose();
+      }, 1100);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

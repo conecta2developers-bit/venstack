@@ -53,16 +53,19 @@ export const PublishJobModal = ({ onClose, onSaveJob, currentUser = null, compan
     };
 
     try {
+      onSaveJob(newJob);
       await saveJobToFirestore(newJob);
+      setSubmitted(true);
+      setTimeout(() => {
+        onClose();
+      }, 1100);
     } catch (err) {
-      console.warn("Aviso Firestore jobs:", err);
+      console.warn("Aviso Firestore jobs (guardado localmente):", err);
+      setSubmitted(true);
+      setTimeout(() => {
+        onClose();
+      }, 1100);
     }
-
-    onSaveJob(newJob);
-    setSubmitted(true);
-    setTimeout(() => {
-      onClose();
-    }, 1400);
   };
 
   return (
