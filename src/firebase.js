@@ -280,5 +280,84 @@ export const deleteDeveloperFromFirestore = async (devId) => {
   }
 };
 
+// -------------------------------------------------------------
+// FIRESTORE: Postulaciones / Candidatos (Applications)
+// -------------------------------------------------------------
+export const saveApplicationToFirestore = async (appData) => {
+  const appId = appData.id || `app-${Date.now()}`;
+  const cleanApp = {
+    ...appData,
+    id: appId,
+    appliedAt: appData.appliedAt || Date.now(),
+    updatedAt: Date.now()
+  };
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_applications') || '[]');
+    const filtered = existing.filter((a) => a.id !== appId);
+    localStorage.setItem('venstack_custom_applications', JSON.stringify([cleanApp, ...filtered]));
+  } catch (e) {
+    console.warn("Aviso guardando postulación en localStorage:", e);
+  }
+
+  try {
+    const docRef = doc(db, "applications", appId);
+    await withTimeout(setDoc(docRef, cleanApp, { merge: true }), 2500);
+    return cleanApp;
+  } catch (error) {
+    console.warn("Aviso Firestore al guardar postulación:", error.message || error);
+    return cleanApp;
+  }
+};
+
+export const subscribeToApplications = (callback) => {
+  try {
+    const appCol = collection(db, "applications");
+    return onSnapshot(
+      appCol,
+      (snapshot) => {
+        const items = [];
+        snapshot.forEach((docSnap) => {
+          items.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        callback(items);
+      },
+      (error) => {
+        console.warn("Aviso Firestore applications (modo local activo):", error.message);
+      }
+    );
+  } catch (err) {
+    console.warn("No se pudo suscribir a applications en Firestore:", err);
+    return () => {};
+  }
+};
+
+export const updateApplicationStatusInFirestore = async (appId, newStatus, notes = '') => {
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_applications') || '[]');
+    const idx = existing.findIndex((a) => a.id === appId);
+    if (idx >= 0) {
+      existing[idx] = { 
+        ...existing[idx], 
+        status: newStatus, 
+        ...(notes !== undefined ? { notes } : {}), 
+        updatedAt: Date.now() 
+      };
+      localStorage.setItem('venstack_custom_applications', JSON.stringify(existing));
+    }
+  } catch (e) {}
+
+  try {
+    const docRef = doc(db, "applications", appId);
+    const updatePayload = { status: newStatus, updatedAt: Date.now() };
+    if (notes !== undefined && notes !== '') {
+      updatePayload.notes = notes;
+    }
+    await withTimeout(setDoc(docRef, updatePayload, { merge: true }), 2500);
+  } catch (error) {
+    console.warn("Aviso Firestore al actualizar estado de postulación:", error.message);
+  }
+};
+
 
 

@@ -1,15 +1,41 @@
 import React, { useState } from 'react';
 import { X, CheckCircle, Clock, Coins, Send, Briefcase } from 'lucide-react';
 
-export const JobModal = ({ job, onClose, onSelectCompany }) => {
+export const JobModal = ({ job, onClose, onSelectCompany, currentUser = null, userProfile = null, onApplyToJob }) => {
   const [applied, setApplied] = useState(false);
+  const [candidateName, setCandidateName] = useState(userProfile?.name || currentUser?.name || '');
+  const [candidateEmail, setCandidateEmail] = useState(currentUser?.email || '');
+  const [candidatePhone, setCandidatePhone] = useState('');
+  const [portfolioLink, setPortfolioLink] = useState(
+    userProfile?.featuredProject?.githubUrl || userProfile?.featuredProject?.demoUrl || ''
+  );
   const [pitch, setPitch] = useState('');
-  const [portfolioLink, setPortfolioLink] = useState('');
 
   if (!job) return null;
 
   const handleApply = (e) => {
     e.preventDefault();
+    const appPayload = {
+      id: `app-${Date.now()}`,
+      jobId: job.id,
+      jobTitle: job.title,
+      companyId: job.companyId || null,
+      companyName: job.company,
+      candidateId: userProfile?.id || (currentUser?.uid ? `dev-${currentUser.uid}` : null),
+      candidateName: candidateName || userProfile?.name || currentUser?.name || 'Desarrollador Postulado',
+      candidateRole: userProfile?.role || 'Desarrollador de Software',
+      candidateAvatar: userProfile?.avatar || currentUser?.avatar || '',
+      candidateCity: userProfile?.city || 'Venezuela (Remoto)',
+      candidateEmail: candidateEmail || currentUser?.email || '',
+      candidatePhone: candidatePhone || '',
+      portfolioLink: portfolioLink.trim(),
+      pitch: pitch.trim(),
+      status: 'pending',
+      appliedAt: Date.now(),
+      notes: ''
+    };
+
+    onApplyToJob?.(appPayload);
     setApplied(true);
   };
 
@@ -163,37 +189,112 @@ export const JobModal = ({ job, onClose, onSelectCompany }) => {
                   Postulación Rápida (1-Clic)
                 </span>
 
-                <input
-                  type="url"
-                  required
-                  placeholder="Enlace a tu GitHub o Portafolio (ej. https://github.com/tu-usuario)"
-                  value={portfolioLink}
-                  onChange={(e) => setPortfolioLink(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(0,0,0,0.12)',
-                    fontSize: '12.5px',
-                    outline: 'none'
-                  }}
-                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 600, color: '#4b5563', display: 'block', marginBottom: '3px' }}>
+                      Tu Nombre
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. Luis Ramírez"
+                      value={candidateName}
+                      onChange={(e) => setCandidateName(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.12)',
+                        fontSize: '12px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 600, color: '#4b5563', display: 'block', marginBottom: '3px' }}>
+                      Correo Electrónico
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="tu-correo@ejemplo.com"
+                      value={candidateEmail}
+                      onChange={(e) => setCandidateEmail(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.12)',
+                        fontSize: '12px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
 
-                <textarea
-                  rows="2"
-                  placeholder="Mensaje corto: ¿Por qué eres ideal para este rol o bounty?"
-                  value={pitch}
-                  onChange={(e) => setPitch(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '9px 12px',
-                    borderRadius: '10px',
-                    border: '1px solid rgba(0,0,0,0.12)',
-                    fontSize: '12.5px',
-                    outline: 'none',
-                    resize: 'none'
-                  }}
-                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 600, color: '#4b5563', display: 'block', marginBottom: '3px' }}>
+                      Enlace GitHub / Portafolio
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      placeholder="https://github.com/tu-usuario"
+                      value={portfolioLink}
+                      onChange={(e) => setPortfolioLink(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.12)',
+                        fontSize: '12px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '11px', fontWeight: 600, color: '#4b5563', display: 'block', marginBottom: '3px' }}>
+                      WhatsApp (Opcional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="+58 412 1234567"
+                      value={candidatePhone}
+                      onChange={(e) => setCandidatePhone(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.12)',
+                        fontSize: '12px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', fontWeight: 600, color: '#4b5563', display: 'block', marginBottom: '3px' }}>
+                    Mensaje / Propuesta para el Contratante
+                  </label>
+                  <textarea
+                    rows="2"
+                    required
+                    placeholder="¿Por qué eres ideal para esta vacante o bounty? (Ej. Experiencia previa, stack, disponibilidad)"
+                    value={pitch}
+                    onChange={(e) => setPitch(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(0,0,0,0.12)',
+                      fontSize: '12px',
+                      outline: 'none',
+                      resize: 'none'
+                    }}
+                  />
+                </div>
 
                 <button
                   type="submit"

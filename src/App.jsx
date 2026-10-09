@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Plus, Search, Smartphone } from 'lucide-react';
 
-import { INITIAL_DEVELOPERS, INITIAL_JOBS, INITIAL_SQUADS, INITIAL_COMPANIES } from './data/mockData';
+import { INITIAL_DEVELOPERS, INITIAL_JOBS, INITIAL_SQUADS, INITIAL_COMPANIES, INITIAL_APPLICATIONS } from './data/mockData';
 import { Navbar } from './components/Navbar';
 import { OnboardingHero } from './components/OnboardingHero';
 import { MobileTabBar } from './components/MobileTabBar';
@@ -16,6 +16,7 @@ import { CreateProfileModal } from './components/CreateProfileModal';
 import { PublishJobModal } from './components/PublishJobModal';
 import { CompanyProfileModal } from './components/CompanyProfileModal';
 import { CompanyDetailModal } from './components/CompanyDetailModal';
+import { CompanyApplicantsModal } from './components/CompanyApplicantsModal';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { AuthModal } from './components/AuthModal';
 import { 
@@ -24,6 +25,9 @@ import {
   subscribeToDevelopers, 
   subscribeToJobs,
   subscribeToCompanies,
+  subscribeToApplications,
+  saveApplicationToFirestore,
+  updateApplicationStatusInFirestore,
   deleteDeveloperFromFirestore,
   saveCompanyToFirestore 
 } from './firebase';
@@ -111,6 +115,25 @@ export function App() {
   });
 
   const [squads, setSquads] = useState(INITIAL_SQUADS);
+
+  const [applications, setApplications] = useState(() => {
+    try {
+      const saved = localStorage.getItem('venstack_custom_applications');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customIds = new Set(parsed.map((a) => a.id));
+          return [...parsed, ...INITIAL_APPLICATIONS.filter((a) => !customIds.has(a.id))];
+        }
+      }
+    } catch (e) {
+      console.warn('Aviso cargando postulaciones locales:', e);
+    }
+    return INITIAL_APPLICATIONS;
+  });
+
+  const [isCompanyApplicantsOpen, setIsCompanyApplicantsOpen] = useState(false);
+  const [applicantsFilterJobId, setApplicantsFilterJobId] = useState(null);
 
   // Subscribe to real-time developers, jobs and companies from Firestore
   useEffect(() => {
@@ -206,10 +229,21 @@ export function App() {
       }
     });
 
+    const unsubApps = subscribeToApplications((firestoreApps) => {
+      if (firestoreApps && firestoreApps.length > 0) {
+        setApplications((prev) => {
+          const firestoreIds = new Set(firestoreApps.map((a) => a.id));
+          const existingWithoutOverlap = prev.filter((a) => !firestoreIds.has(a.id));
+          return [...firestoreApps, ...existingWithoutOverlap];
+        });
+      }
+    });
+
     return () => {
       if (unsubDevs) unsubDevs();
       if (unsubJobs) unsubJobs();
       if (unsubCompanies) unsubCompanies();
+      if (unsubApps) unsubApps();
     };
   }, []);
 
@@ -339,6 +373,40 @@ export function App() {
       }
       return updated;
     });
+  };
+
+  const handleApplyToJob = async (appPayload) => {
+    setApplications((prev) => {
+      const updated = [appPayload, ...prev.filter((a) => a.id !== appPayload.id)];
+      try {
+        const custom = JSON.parse(localStorage.getItem('venstack_custom_applications') || '[]');
+        const filtered = custom.filter((a) => a.id !== appPayload.id);
+        localStorage.setItem('venstack_custom_applications', JSON.stringify([appPayload, ...filtered]));
+      } catch (e) {}
+      return updated;
+    });
+    try {
+      await saveApplicationToFirestore(appPayload);
+    } catch (err) {
+      console.warn("Aviso guardando postulación en Firestore:", err);
+    }
+  };
+
+  const handleUpdateApplicationStatus = async (appId, newStatus, notes) => {
+    setApplications((prev) => {
+      const updated = prev.map((a) => 
+        a.id === appId ? { ...a, status: newStatus, ...(notes !== undefined ? { notes } : {}) } : a
+      );
+      try {
+        localStorage.setItem('venstack_custom_applications', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    try {
+      await updateApplicationStatusInFirestore(appId, newStatus, notes);
+    } catch (err) {
+      console.warn("Aviso actualizando postulación en Firestore:", err);
+    }
   };
 
   // Filter developers
@@ -602,6 +670,18 @@ export function App() {
     );
   }, [jobs, companyProfile, currentUser]);
 
+  const companyApplicants = useMemo(() => {
+    if (!isCompanyUser) return [];
+    const compName = (companyProfile?.name || currentUser?.name || '').toLowerCase().trim();
+    const compId = companyProfile?.id;
+    return applications.filter((app) => {
+      if (compId && app.companyId && app.companyId === compId) return true;
+      if (compName && app.companyName && app.companyName.toLowerCase().includes(compName)) return true;
+      if (currentCompanyJobs.some((j) => j.id === app.jobId)) return true;
+      return false;
+    });
+  }, [applications, isCompanyUser, companyProfile, currentUser?.name, currentCompanyJobs]);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingBottom: '96px', overflowX: 'hidden', width: '100%' }}>
       
@@ -613,6 +693,11 @@ export function App() {
         onOpenCreateProfile={handleOpenCreateProfile}
         onOpenPublishJob={() => setIsPublishJobOpen(true)}
         onOpenPwaInstall={() => setIsManualPwaOpen(true)}
+        onOpenApplicants={() => {
+          setApplicantsFilterJobId(null);
+          setIsCompanyApplicantsOpen(true);
+        }}
+        applicantsCount={companyApplicants.length}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
@@ -900,6 +985,9 @@ export function App() {
           job={selectedJob}
           onClose={() => setSelectedJob(null)}
           onSelectCompany={handleSelectCompany}
+          currentUser={currentUser}
+          userProfile={userProfile}
+          onApplyToJob={handleApplyToJob}
         />
       )}
 
@@ -934,6 +1022,10 @@ export function App() {
           }}
           onSaveCompany={handleSaveCompany}
           onOpenPublishJob={() => setIsPublishJobOpen(true)}
+          onOpenApplicants={(jobId) => {
+            setApplicantsFilterJobId(jobId || null);
+            setIsCompanyApplicantsOpen(true);
+          }}
           companyJobs={currentCompanyJobs}
         />
       )}
@@ -957,6 +1049,32 @@ export function App() {
           onEditCompany={() => {
             setSelectedCompany(null);
             setIsCompanyProfileOpen(true);
+          }}
+          onOpenApplicants={(jobId) => {
+            setApplicantsFilterJobId(jobId || null);
+            setIsCompanyApplicantsOpen(true);
+          }}
+          applicantsCount={companyApplicants.length}
+        />
+      )}
+
+      {isCompanyApplicantsOpen && (
+        <CompanyApplicantsModal
+          isOpen={true}
+          onClose={() => {
+            setIsCompanyApplicantsOpen(false);
+            setApplicantsFilterJobId(null);
+          }}
+          company={companyProfile}
+          companyJobs={currentCompanyJobs}
+          applications={applications}
+          initialJobId={applicantsFilterJobId}
+          onUpdateStatus={handleUpdateApplicationStatus}
+          onViewDeveloper={(devId, devName) => {
+            const found = developers.find((d) => d.id === devId || d.name?.toLowerCase() === devName?.toLowerCase());
+            if (found) {
+              setSelectedDev(found);
+            }
           }}
         />
       )}
@@ -1036,6 +1154,8 @@ export function App() {
         onOpenCreateProfile={handleOpenCreateProfile}
         hasProfile={hasProfile}
         isCompanyUser={isCompanyUser}
+        onOpenApplicants={() => setIsApplicantsModalOpen(true)}
+        applicantsCount={companyApplicants.length}
       />
 
       {/* Progressive Web App (PWA) Installer */}

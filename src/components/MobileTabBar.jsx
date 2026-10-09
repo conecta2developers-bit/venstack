@@ -1,7 +1,15 @@
 import React from 'react';
-import { Users, Briefcase, Layers, MessageSquare, Plus, Sparkles, Edit3, Building2 } from 'lucide-react';
+import { Users, Briefcase, Layers, MessageSquare, Plus, Edit3, Building2, UserCheck } from 'lucide-react';
 
-export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile, hasProfile = false, isCompanyUser = false }) => {
+export const MobileTabBar = ({
+  activeTab,
+  setActiveTab,
+  onOpenCreateProfile,
+  hasProfile = false,
+  isCompanyUser = false,
+  onOpenApplicants,
+  applicantsCount = 0
+}) => {
   const tabs = [
     { id: 'developers', label: 'Talento', icon: Users },
     { id: 'jobs', label: 'Empleos', icon: Briefcase, hasBadge: true },
@@ -85,6 +93,61 @@ export const MobileTabBar = ({ activeTab, setActiveTab, onOpenCreateProfile, has
             </button>
           );
         })}
+
+        {/* Dedicated "Postulantes" Button for Company / Recruiter */}
+        {isCompanyUser && onOpenApplicants && (
+          <button
+            onClick={onOpenApplicants}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '6px 4px',
+              borderRadius: '18px',
+              border: 'none',
+              background: 'rgba(37, 99, 235, 0.08)',
+              color: '#2563eb',
+              cursor: 'pointer',
+              position: 'relative',
+              flex: 1,
+              transition: 'all 0.18s ease'
+            }}
+            title="Ver Postulantes de mis vacantes"
+          >
+            <div style={{ position: 'relative' }}>
+              <UserCheck size={18} strokeWidth={2.4} color="#2563eb" />
+              {applicantsCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-7px',
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  fontSize: '9px',
+                  fontWeight: 800,
+                  borderRadius: '10px',
+                  padding: '1px 4px',
+                  minWidth: '13px',
+                  textAlign: 'center',
+                  lineHeight: '1'
+                }}>
+                  {applicantsCount}
+                </span>
+              )}
+            </div>
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              color: '#2563eb',
+              marginTop: '2px',
+              letterSpacing: '-0.01em',
+              lineHeight: 1
+            }}>
+              Postulados
+            </span>
+          </button>
+        )}
 
         {/* Elevated "Mi Perfil" / "Mi Empresa" Button */}
         <button

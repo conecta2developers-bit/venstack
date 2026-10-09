@@ -10,7 +10,9 @@ export const CompanyDetailModal = ({
   onSelectJob, 
   activeJobs = [],
   isOwner = false,
-  onEditCompany
+  onEditCompany,
+  onOpenApplicants = null,
+  applicantsCount = 0
 }) => {
   if (!company) return null;
 
@@ -49,6 +51,44 @@ export const CompanyDetailModal = ({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isOwner && onOpenApplicants && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenApplicants();
+                }}
+                className="apple-btn-secondary"
+                style={{
+                  fontSize: '11.5px',
+                  padding: '5px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  borderColor: '#93c5fd',
+                  color: '#1d4ed8',
+                  background: '#eff6ff',
+                  cursor: 'pointer'
+                }}
+                title="Ver postulantes a las ofertas de mi empresa"
+              >
+                <Users size={13} color="#2563eb" />
+                <span>Postulantes</span>
+                {applicantsCount > 0 && (
+                  <span style={{
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    fontSize: '9.5px',
+                    fontWeight: 800,
+                    borderRadius: '999px',
+                    padding: '1px 5px',
+                    lineHeight: 1
+                  }}>
+                    {applicantsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
             {isOwner && onEditCompany && (
               <button
                 onClick={() => {

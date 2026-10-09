@@ -449,3 +449,82 @@ export const INITIAL_COMPANIES = [
   }
 ];
 
+export const INITIAL_APPLICATIONS = [
+  {
+    id: "app-1",
+    jobId: "job-1",
+    jobTitle: "Senior UI/UX & Product Designer",
+    companyId: "comp-1",
+    companyName: "Fintech Caribe",
+    candidateId: "dev-2",
+    candidateName: "Camila Navarro",
+    candidateRole: "Lead Product & UI/UX Designer",
+    candidateAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=240&auto=format&fit=crop&q=80",
+    candidateCity: "Valencia, VE",
+    candidateEmail: "camila.navarro@venstack.dev",
+    candidatePhone: "+58 412-8899221",
+    portfolioLink: "https://finflow-demo.vercel.app",
+    pitch: "Hola equipo de Fintech Caribe, tengo 4+ años diseñando aplicaciones fintech y mobile banking. Cuento con inversor eléctrico de 6 horas y fibra simétrica para disponibilidad inmediata.",
+    status: "interview",
+    appliedAt: Date.now() - 1000 * 60 * 60 * 4,
+    notes: "Excelente portafolio en Figma. Agendar llamada técnica para el martes."
+  },
+  {
+    id: "app-2",
+    jobId: "job-4",
+    jobTitle: "Frontend Developer (React / Next.js)",
+    companyId: "comp-4",
+    companyName: "Kubo Apps",
+    candidateId: "dev-1",
+    candidateName: "Valentina Briceño",
+    candidateRole: "Frontend Engineer & UI Specialist",
+    candidateAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80",
+    candidateCity: "Caracas, VE",
+    candidateEmail: "valentina.briceno@venstack.dev",
+    candidatePhone: "+58 414-3322110",
+    portfolioLink: "https://finflow-demo.vercel.app",
+    pitch: "Especialista en React, Next.js y Tailwind CSS. Tengo experiencia integrando APIs GraphQL y componentes modulares pixel-perfect.",
+    status: "contacted",
+    appliedAt: Date.now() - 1000 * 60 * 60 * 18,
+    notes: "Perfil verificado. Contactada vía Telegram y correo."
+  },
+  {
+    id: "app-3",
+    jobId: "job-2",
+    jobTitle: "Ingeniero de Inteligencia Artificial (LLMs & RAG)",
+    companyId: "comp-2",
+    companyName: "Cognitive Studio",
+    candidateId: "dev-3",
+    candidateName: "Dayana Rangel",
+    candidateRole: "Senior AI & Machine Learning Engineer",
+    candidateAvatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=240&auto=format&fit=crop&q=80",
+    candidateCity: "Caracas, VE",
+    candidateEmail: "dayana.rangel@venstack.dev",
+    candidatePhone: "+58 424-5544332",
+    portfolioLink: "https://github.com/dayanarangel",
+    pitch: "Diseño pipelines de RAG y agentes autónomos con LangChain y FastAPI. Cuento con setup solar y conexión redundante de 400 Mbps.",
+    status: "pending",
+    appliedAt: Date.now() - 1000 * 60 * 60 * 2,
+    notes: ""
+  },
+  {
+    id: "app-4",
+    jobId: "job-4",
+    jobTitle: "Frontend Developer (React / Next.js)",
+    companyId: "comp-4",
+    companyName: "Kubo Apps",
+    candidateId: "dev-5",
+    candidateName: "Carlos Eduardo Silva",
+    candidateRole: "Junior Full Stack Developer",
+    candidateAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&auto=format&fit=crop&q=80",
+    candidateCity: "Maracaibo, VE",
+    candidateEmail: "carlos.silva@venstack.dev",
+    candidatePhone: "+58 416-7788990",
+    portfolioLink: "https://mercadocriollo.web.app",
+    pitch: "Desarrollador Junior entusiasmado con aprender buenas prácticas. Construí MercadoCriollo con React y Node.js, listo para dar el 100% en Kubo Apps.",
+    status: "pending",
+    appliedAt: Date.now() - 1000 * 60 * 60 * 28,
+    notes: "Candidato junior muy proactivo, revisar proyecto MercadoCriollo."
+  }
+];
+

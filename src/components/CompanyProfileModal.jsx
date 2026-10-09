@@ -49,6 +49,7 @@ export const CompanyProfileModal = ({
   existingCompany, 
   onSaveCompany,
   onOpenPublishJob,
+  onOpenApplicants,
   companyJobs = [] 
 }) => {
   const fileInputRef = useRef(null);
@@ -759,9 +760,27 @@ export const CompanyProfileModal = ({
                     <span style={{ fontSize: '12px', fontWeight: 700, color: '#1e293b' }}>
                       Tus Ofertas Publicadas ({companyJobs.length})
                     </span>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>
-                      Visibles en Empleos & Bounties
-                    </span>
+                    {onOpenApplicants && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenApplicants();
+                        }}
+                        style={{
+                          background: '#eff6ff',
+                          border: '1px solid #bfdbfe',
+                          color: '#2563eb',
+                          borderRadius: '8px',
+                          padding: '3px 10px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Ver Postulantes ➔
+                      </button>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -786,16 +805,39 @@ export const CompanyProfileModal = ({
                             {job.salary} • {job.type}
                           </span>
                         </div>
-                        <span style={{
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          color: '#059669',
-                          background: '#ecfdf5',
-                          padding: '2px 8px',
-                          borderRadius: '999px'
-                        }}>
-                          Activa
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {onOpenApplicants && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onClose();
+                                onOpenApplicants(job.id);
+                              }}
+                              style={{
+                                background: '#eff6ff',
+                                border: '1px solid #bfdbfe',
+                                color: '#1d4ed8',
+                                borderRadius: '6px',
+                                padding: '3px 8px',
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Postulantes
+                            </button>
+                          )}
+                          <span style={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            color: '#059669',
+                            background: '#ecfdf5',
+                            padding: '2px 8px',
+                            borderRadius: '999px'
+                          }}>
+                            Activa
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>

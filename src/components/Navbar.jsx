@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2, Smartphone } from 'lucide-react';
+import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2, Smartphone, Users } from 'lucide-react';
 
 export const Navbar = ({ 
   isIntro = false,
@@ -8,6 +8,8 @@ export const Navbar = ({
   onOpenCreateProfile, 
   onOpenPublishJob, 
   onOpenPwaInstall,
+  onOpenApplicants = null,
+  applicantsCount = 0,
   searchQuery, 
   setSearchQuery,
   currentUser = null,
@@ -144,6 +146,50 @@ export const Navbar = ({
             <Briefcase size={13.5} color={isCompanyUser ? '#ffffff' : '#4b5563'} />
             <span>Publicar Oferta</span>
           </button>
+
+          {/* Button: Postulantes a mis vacantes (para Empresas) */}
+          {isCompanyUser && onOpenApplicants && (
+            <button
+              onClick={onOpenApplicants}
+              style={{
+                display: 'inline-flex',
+                height: '35px',
+                padding: '0 12px',
+                borderRadius: '999px',
+                border: '1px solid #bfdbfe',
+                background: '#eff6ff',
+                color: '#1d4ed8',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 1px 4px rgba(37,99,235,0.12)',
+                transition: 'all 0.16s ease',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
+                flexShrink: 0
+              }}
+              id="applicants-btn"
+              title="Ver postulantes a las vacantes de mi empresa"
+            >
+              <Users size={14} color="#2563eb" />
+              <span>Postulantes</span>
+              {applicantsCount > 0 && (
+                <span style={{
+                  background: '#2563eb',
+                  color: '#ffffff',
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  borderRadius: '999px',
+                  padding: '1px 6px',
+                  lineHeight: 1.2
+                }}>
+                  {applicantsCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Button: Instalar App */}
           {onOpenPwaInstall && (
