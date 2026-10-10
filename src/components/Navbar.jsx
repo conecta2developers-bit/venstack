@@ -41,6 +41,7 @@ export const Navbar = ({
           <img 
             src="/img/venstack.png" 
             alt="Venstack - Venezuela Tech Community" 
+            className="navbar-brand-logo-img"
             style={{ 
               height: '74px', 
               width: 'auto', 
@@ -86,7 +87,7 @@ export const Navbar = ({
         </nav>
 
         {/* Actions & Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+        <div className="apple-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
           
           {/* Header Search Box */}
           <div 
@@ -151,6 +152,8 @@ export const Navbar = ({
           {isCompanyUser && onOpenApplicants && (
             <button
               onClick={onOpenApplicants}
+              id="applicants-btn"
+              className="navbar-applicants-btn"
               style={{
                 display: 'inline-flex',
                 height: '35px',
@@ -170,21 +173,23 @@ export const Navbar = ({
                 boxSizing: 'border-box',
                 flexShrink: 0
               }}
-              id="applicants-btn"
               title="Ver postulantes a las vacantes de mi empresa"
             >
               <Users size={14} color="#2563eb" />
-              <span>Postulantes</span>
+              <span className="navbar-applicants-text">Postulantes</span>
               {applicantsCount > 0 && (
-                <span style={{
-                  background: '#2563eb',
-                  color: '#ffffff',
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  borderRadius: '999px',
-                  padding: '1px 6px',
-                  lineHeight: 1.2
-                }}>
+                <span 
+                  className="navbar-applicants-count"
+                  style={{
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    borderRadius: '999px',
+                    padding: '1px 6px',
+                    lineHeight: 1.2
+                  }}
+                >
                   {applicantsCount}
                 </span>
               )}
@@ -230,8 +235,9 @@ export const Navbar = ({
             const firstLetter = (effectiveName || 'U').charAt(0).toUpperCase();
 
             return (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              <div className="navbar-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                 <div 
+                  id="user-profile-badge"
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -254,6 +260,7 @@ export const Navbar = ({
                     <img 
                       src={effectiveAvatar} 
                       alt={effectiveName} 
+                      className="navbar-profile-avatar"
                       style={{ 
                         width: '24px', 
                         height: '24px', 
@@ -264,47 +271,54 @@ export const Navbar = ({
                       }} 
                     />
                   ) : isCompanyUser ? (
-                    <div style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
+                    <div 
+                      className="navbar-profile-avatar"
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
                       <Building2 size={12.5} />
                     </div>
                   ) : (
-                    <div style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      background: '#0d9488',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      flexShrink: 0
-                    }}>
+                    <div 
+                      className="navbar-profile-avatar"
+                      style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: '#0d9488',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        flexShrink: 0
+                      }}
+                    >
                       {firstLetter}
                     </div>
                   )}
-                  <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, justifyContent: 'center', overflow: 'hidden' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#1d1d1f', maxWidth: '95px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div className="navbar-profile-text-col" style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, justifyContent: 'center', overflow: 'hidden' }}>
+                    <span className="navbar-profile-name" style={{ fontSize: '11px', fontWeight: 700, color: '#1d1d1f', maxWidth: '95px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {effectiveName}
                     </span>
-                    <span style={{ fontSize: '8.5px', color: isCompanyUser ? '#2563eb' : '#0d9488', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    <span className="navbar-profile-role" style={{ fontSize: '8.5px', color: isCompanyUser ? '#2563eb' : '#0d9488', fontWeight: 700, whiteSpace: 'nowrap' }}>
                       {effectiveRole}
                     </span>
                   </div>
                 </div>
 
                 <button
+                  id="navbar-logout-btn"
                   onClick={onLogout}
                   title="Cerrar Sesión"
                   style={{
@@ -339,10 +353,10 @@ export const Navbar = ({
               </div>
             );
           })() : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <div className="navbar-auth-buttons" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
               <button
                 onClick={onOpenLogin}
-                className="apple-btn-secondary"
+                className="apple-btn-secondary navbar-login-btn"
                 style={{ 
                   height: '35px',
                   padding: '0 14px',
@@ -360,7 +374,7 @@ export const Navbar = ({
 
               <button
                 onClick={onOpenRegister}
-                className="apple-btn-primary"
+                className="apple-btn-primary navbar-register-btn"
                 style={{ 
                   height: '35px',
                   padding: '0 15px',
@@ -401,6 +415,102 @@ export const Navbar = ({
           #publish-btn span { display: none !important; }
           #publish-btn { padding: 0 10px !important; }
           #header-search { display: none !important; }
+        }
+
+        /* Responsive Mobile Header Tweaks */
+        @media (max-width: 767px) {
+          .apple-header-inner {
+            padding: 0 10px !important;
+            gap: 6px !important;
+          }
+          .navbar-brand-logo-img {
+            height: 50px !important;
+            margin: -6px -6px -6px -4px !important;
+          }
+          .apple-header-actions {
+            gap: 5px !important;
+          }
+          .navbar-user-actions {
+            gap: 4px !important;
+          }
+
+          /* Applicants Button: Compact icon + notification badge */
+          #applicants-btn {
+            height: 33px !important;
+            width: 33px !important;
+            min-width: 33px !important;
+            padding: 0 !important;
+            justify-content: center !important;
+            position: relative !important;
+            border-radius: 50% !important;
+          }
+          .navbar-applicants-text {
+            display: none !important;
+          }
+          .navbar-applicants-count {
+            position: absolute !important;
+            top: -3px !important;
+            right: -3px !important;
+            font-size: 9px !important;
+            padding: 1px 4px !important;
+            min-width: 14px !important;
+            text-align: center !important;
+            border: 2px solid #ffffff !important;
+            box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+          }
+
+          /* User Profile Badge: Slim and single line */
+          #user-profile-badge {
+            height: 33px !important;
+            padding: 0 8px 0 4px !important;
+            max-width: 100px !important;
+            gap: 5px !important;
+          }
+          .navbar-profile-role {
+            display: none !important;
+          }
+          .navbar-profile-name {
+            max-width: 60px !important;
+            font-size: 11px !important;
+          }
+
+          /* Logout Button */
+          #navbar-logout-btn {
+            width: 33px !important;
+            height: 33px !important;
+            min-width: 33px !important;
+          }
+        }
+
+        /* Extra compact mobile (phones <= 400px width like iPhone SE, small Androids) */
+        @media (max-width: 400px) {
+          .apple-header-inner {
+            padding: 0 8px !important;
+            gap: 4px !important;
+          }
+          .navbar-brand-logo-img {
+            height: 44px !important;
+            margin: -4px -4px -4px -2px !important;
+          }
+          #user-profile-badge {
+            padding: 0 4px !important;
+            max-width: 33px !important;
+            border-radius: 50% !important;
+            justify-content: center !important;
+          }
+          .navbar-profile-text-col {
+            display: none !important;
+          }
+          #applicants-btn {
+            width: 32px !important;
+            min-width: 32px !important;
+            height: 32px !important;
+          }
+          #navbar-logout-btn {
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+          }
         }
       `}</style>
     </header>
