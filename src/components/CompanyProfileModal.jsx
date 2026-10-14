@@ -62,6 +62,7 @@ export const CompanyProfileModal = ({
     website: existingCompany?.website || '',
     companySize: existingCompany?.companySize || '11-50 colaboradores (Crecimiento)',
     avatar: existingCompany?.avatar || currentUser?.avatar || '',
+    phone: existingCompany?.phone || currentUser?.phone || '',
     description: existingCompany?.description || 'Buscamos y contratamos talento tecnológico venezolano para proyectos globales y productos de alto impacto.',
     techStack: existingCompany?.techStack ? existingCompany.techStack.join(', ') : 'React, TypeScript, Node.js, Python, AWS',
     benefits: existingCompany?.benefits || [
@@ -82,6 +83,7 @@ export const CompanyProfileModal = ({
         website: existingCompany.website || '',
         companySize: existingCompany.companySize || '11-50 colaboradores (Crecimiento)',
         avatar: existingCompany.avatar || currentUser?.avatar || '',
+        phone: existingCompany.phone || currentUser?.phone || '',
         description: existingCompany.description || 'Buscamos y contratamos talento tecnológico venezolano para proyectos globales y productos de alto impacto.',
         techStack: Array.isArray(existingCompany.techStack) ? existingCompany.techStack.join(', ') : (existingCompany.techStack || 'React, TypeScript, Node.js, Python, AWS'),
         benefits: existingCompany.benefits || [
@@ -183,6 +185,9 @@ export const CompanyProfileModal = ({
       website: formData.website.trim(),
       companySize: formData.companySize,
       avatar: formData.avatar,
+      phone: formData.phone?.trim() || '',
+      approved: existingCompany?.approved !== undefined ? existingCompany.approved : false,
+      featured: existingCompany?.featured || false,
       description: formData.description.trim(),
       techStack: techArray,
       benefits: formData.benefits,
@@ -590,6 +595,31 @@ export const CompanyProfileModal = ({
                       value={formData.website}
                       onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                       placeholder="https://miempresa.com o https://linkedin.com/company/..."
+                      className="apple-input"
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '10px 14px',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(0,0,0,0.14)',
+                        fontSize: '13px',
+                        background: '#ffffff',
+                        color: '#1d1d1f',
+                        outline: 'none',
+                        display: 'block'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ fontSize: '11px', fontWeight: 700, color: '#374151', display: 'block', marginBottom: '4px' }}>
+                      Teléfono / WhatsApp de Contacto
+                    </label>
+                    <input 
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="Ej. +58 412 1234567 o +1 305 1234567"
                       className="apple-input"
                       style={{
                         width: '100%',

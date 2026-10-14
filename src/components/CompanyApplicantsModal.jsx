@@ -4,6 +4,7 @@ import {
   CheckCircle2, Clock, Eye, AlertCircle, Filter, Search, ChevronDown, Check,
   Sparkles, Star, UserCheck, ShieldCheck
 } from 'lucide-react';
+import { getFallbackAvatar } from '../utils/avatar';
 
 const STATUS_CONFIG = {
   pending: {
@@ -59,8 +60,6 @@ export const CompanyApplicantsModal = ({
   const [editingNotesId, setEditingNotesId] = useState(null);
   const [noteText, setNoteText] = useState('');
 
-  if (!isOpen) return null;
-
   // Filter applications that belong to this company
   const companyApps = useMemo(() => {
     const compName = (company?.name || company?.companyName || '').toLowerCase().trim();
@@ -112,6 +111,8 @@ export const CompanyApplicantsModal = ({
       rejected: base.filter((a) => a.status === 'rejected').length
     };
   }, [companyApps, selectedJobId]);
+
+  if (!isOpen) return null;
 
   const handleStatusChange = (appId, newStatus) => {
     onUpdateStatus?.(appId, newStatus);
@@ -410,6 +411,10 @@ export const CompanyApplicantsModal = ({
                               src={app.candidateAvatar} 
                               alt={app.candidateName} 
                               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = getFallbackAvatar(app.candidateName);
+                              }}
                             />
                           ) : (
                             initials

@@ -11,6 +11,8 @@ export const INITIAL_DEVELOPERS = [
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80",
     city: "Caracas, VE",
     verified: true,
+    approved: true,
+    featured: true,
     available: true,
     availabilityText: "Disponible (Full-time / Remoto)",
     rate: "$1,100 - $1,600 / mes",

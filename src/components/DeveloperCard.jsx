@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck, Zap, Wifi, ExternalLink, Star } from 'lucide-react';
+import { getFallbackAvatar } from '../utils/avatar';
 
 export const DeveloperCard = ({ dev, onSelectDev }) => {
   return (
@@ -13,11 +14,12 @@ export const DeveloperCard = ({ dev, onSelectDev }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
             <div style={{ position: 'relative', flexShrink: 0 }}>
               <img
-                src={dev.avatar}
+                src={dev.avatar || getFallbackAvatar(dev.name)}
                 alt={dev.name}
                 className="apple-dev-avatar"
                 onError={(e) => {
-                  e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(dev.name || 'Dev')}`;
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = getFallbackAvatar(dev.name);
                 }}
               />
               {dev.available && (
@@ -69,21 +71,43 @@ export const DeveloperCard = ({ dev, onSelectDev }) => {
             </div>
           </div>
 
-          {/* Karma Score (Always protected with flexShrink: 0) */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '3px',
-            padding: '3px 7px',
-            background: 'rgba(0, 0, 0, 0.04)',
-            borderRadius: '999px',
-            fontSize: '11px',
-            fontWeight: 700,
-            color: '#515154',
-            flexShrink: 0
-          }}>
-            <Star size={11} color="#f59e0b" fill="#f59e0b" />
-            <span>{dev.karma}</span>
+          {/* Badge: Destacado ⭐ (Solo si es perfil destacado) o En revisión si está pendiente */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}>
+            {dev.approved === false && (
+              <span style={{
+                fontSize: '10px',
+                fontWeight: 700,
+                color: '#d97706',
+                background: '#fef3c7',
+                border: '1px solid #fde68a',
+                padding: '2px 7px',
+                borderRadius: '999px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}>
+                ⏳ En revisión
+              </span>
+            )}
+
+            {(dev.featured || dev.isFeatured || dev.destacado) && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                padding: '3px 8px',
+                background: 'rgba(245, 158, 11, 0.1)',
+                border: '1px solid rgba(245, 158, 11, 0.28)',
+                borderRadius: '999px',
+                fontSize: '10.5px',
+                fontWeight: 800,
+                color: '#b45309',
+                boxShadow: '0 1px 3px rgba(245, 158, 11, 0.15)'
+              }} title="Perfil Destacado en Venstack">
+                <Star size={11.5} color="#f59e0b" fill="#f59e0b" />
+                <span>Destacado</span>
+              </div>
+            )}
           </div>
         </div>
 

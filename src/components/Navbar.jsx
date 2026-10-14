@@ -1,5 +1,6 @@
 import React from 'react';
-import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2, Smartphone, Users } from 'lucide-react';
+import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2, Smartphone, Users, Send, Shield } from 'lucide-react';
+import { getFallbackAvatar } from '../utils/avatar';
 
 export const Navbar = ({ 
   isIntro = false,
@@ -10,6 +11,10 @@ export const Navbar = ({
   onOpenPwaInstall,
   onOpenApplicants = null,
   applicantsCount = 0,
+  onOpenMyApplications = null,
+  myApplicationsCount = 0,
+  onOpenAdminPanel = null,
+  pendingApprovalCount = 0,
   searchQuery, 
   setSearchQuery,
   currentUser = null,
@@ -72,12 +77,7 @@ export const Navbar = ({
               backgroundColor: '#d97706'
             }} />
           </button>
-          <button
-            onClick={() => setActiveTab('squads')}
-            className={`apple-nav-btn ${activeTab === 'squads' ? 'active' : ''}`}
-          >
-            Squads
-          </button>
+          {/* Squads oculto temporalmente según solicitud */}
           <button
             onClick={() => setActiveTab('community')}
             className={`apple-nav-btn ${activeTab === 'community' ? 'active' : ''}`}
@@ -86,38 +86,8 @@ export const Navbar = ({
           </button>
         </nav>
 
-        {/* Actions & Search */}
+        {/* Actions */}
         <div className="apple-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-          
-          {/* Header Search Box */}
-          <div 
-            className="apple-search-box" 
-            style={{ 
-              display: 'none',
-              height: '35px',
-              padding: '0 10px',
-              boxSizing: 'border-box'
-            }} 
-            id="header-search"
-          >
-            <Search size={14} color="#86868b" />
-            <input
-              type="text"
-              placeholder="Buscar por rol, stack..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="apple-search-input"
-              style={{ fontSize: '12px' }}
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                style={{ background: 'none', border: 'none', padding: '0', cursor: 'pointer', display: 'flex' }}
-              >
-                <X size={12} color="#86868b" />
-              </button>
-            )}
-          </div>
 
           {/* Button: Publicar Oferta */}
           <button
@@ -196,6 +166,54 @@ export const Navbar = ({
             </button>
           )}
 
+          {/* Button: Mis Postulaciones (para Profesionales/Candidatos) */}
+          {currentUser && !isCompanyUser && onOpenMyApplications && (
+            <button
+              onClick={onOpenMyApplications}
+              id="my-applications-btn"
+              className="navbar-applicants-btn"
+              style={{
+                display: 'inline-flex',
+                height: '35px',
+                padding: '0 12px',
+                borderRadius: '999px',
+                border: '1px solid rgba(13, 148, 136, 0.25)',
+                background: 'rgba(13, 148, 136, 0.08)',
+                color: '#0d9488',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                alignItems: 'center',
+                gap: '6px',
+                boxShadow: '0 1px 4px rgba(13, 148, 136, 0.1)',
+                transition: 'all 0.16s ease',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
+                flexShrink: 0
+              }}
+              title="Ver el estado de mis postulaciones"
+            >
+              <Send size={13.5} color="#0d9488" />
+              <span className="navbar-applicants-text">Mis Postulaciones</span>
+              {myApplicationsCount > 0 && (
+                <span 
+                  className="navbar-applicants-count"
+                  style={{
+                    background: '#0d9488',
+                    color: '#ffffff',
+                    fontSize: '10px',
+                    fontWeight: 800,
+                    borderRadius: '999px',
+                    padding: '1px 6px',
+                    lineHeight: 1.2
+                  }}
+                >
+                  {myApplicationsCount}
+                </span>
+              )}
+            </button>
+          )}
+
           {/* Button: Instalar App */}
           {onOpenPwaInstall && (
             <button
@@ -236,6 +254,47 @@ export const Navbar = ({
 
             return (
               <div className="navbar-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                {/* Admin Panel Button */}
+                {(currentUser.isAdmin || currentUser.email === 'adminhub@venstack.com' || currentUser.email === 'adminhub@venstackcom') && onOpenAdminPanel && (
+                  <button
+                    onClick={onOpenAdminPanel}
+                    style={{
+                      height: '35px',
+                      padding: '0 12px',
+                      borderRadius: '999px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.3)',
+                      transition: 'all 0.16s ease',
+                      flexShrink: 0
+                    }}
+                    title="Abrir Panel de Administración Venstack"
+                  >
+                    <Shield size={14} color="#38bdf8" />
+                    <span>Panel Admin</span>
+                    {pendingApprovalCount > 0 && (
+                      <span style={{
+                        background: '#ea580c',
+                        color: '#ffffff',
+                        fontSize: '9.5px',
+                        fontWeight: 800,
+                        padding: '1px 6px',
+                        borderRadius: '999px',
+                        boxShadow: '0 1px 4px rgba(234, 88, 12, 0.4)'
+                      }}>
+                        {pendingApprovalCount}
+                      </span>
+                    )}
+                  </button>
+                )}
+
                 <div 
                   id="user-profile-badge"
                   style={{ 
@@ -269,6 +328,10 @@ export const Navbar = ({
                         display: 'block',
                         flexShrink: 0
                       }} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = getFallbackAvatar(effectiveName);
+                      }}
                     />
                   ) : isCompanyUser ? (
                     <div 
@@ -294,17 +357,16 @@ export const Navbar = ({
                         width: '24px',
                         height: '24px',
                         borderRadius: '50%',
-                        background: '#0d9488',
-                        color: '#ffffff',
+                        background: '#f1f5f9',
+                        color: '#64748b',
+                        border: '1px solid #cbd5e1',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '11px',
-                        fontWeight: 700,
                         flexShrink: 0
                       }}
                     >
-                      {firstLetter}
+                      <User size={13} strokeWidth={2.2} />
                     </div>
                   )}
                   <div className="navbar-profile-text-col" style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, justifyContent: 'center', overflow: 'hidden' }}>

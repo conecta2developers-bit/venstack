@@ -280,6 +280,22 @@ export const deleteDeveloperFromFirestore = async (devId) => {
   }
 };
 
+export const deleteCompanyFromFirestore = async (compId) => {
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_companies') || '[]');
+    const filtered = existing.filter((c) => c.id !== compId);
+    localStorage.setItem('venstack_custom_companies', JSON.stringify(filtered));
+  } catch (e) {}
+
+  try {
+    const docRef = doc(db, "companies", compId);
+    await withTimeout(deleteDoc(docRef), 2500);
+  } catch (error) {
+    console.warn("Aviso al eliminar empresa de Firestore:", error.message);
+  }
+};
+
+
 // -------------------------------------------------------------
 // FIRESTORE: Postulaciones / Candidatos (Applications)
 // -------------------------------------------------------------
@@ -359,5 +375,19 @@ export const updateApplicationStatusInFirestore = async (appId, newStatus, notes
   }
 };
 
+export const deleteApplicationFromFirestore = async (appId) => {
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_applications') || '[]');
+    const filtered = existing.filter((a) => a.id !== appId);
+    localStorage.setItem('venstack_custom_applications', JSON.stringify(filtered));
+  } catch (e) {
+    console.warn("Aviso eliminando postulación en localStorage:", e);
+  }
 
-
+  try {
+    const docRef = doc(db, "applications", appId);
+    await withTimeout(deleteDoc(docRef), 2500);
+  } catch (error) {
+    console.warn("Aviso Firestore al eliminar postulación:", error.message || error);
+  }
+};

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Plus, Search, Smartphone } from 'lucide-react';
+import { Plus, Search, Smartphone, Send, X } from 'lucide-react';
 
 import { INITIAL_DEVELOPERS, INITIAL_JOBS, INITIAL_SQUADS, INITIAL_COMPANIES, INITIAL_APPLICATIONS } from './data/mockData';
 import { Navbar } from './components/Navbar';
@@ -17,8 +17,10 @@ import { PublishJobModal } from './components/PublishJobModal';
 import { CompanyProfileModal } from './components/CompanyProfileModal';
 import { CompanyDetailModal } from './components/CompanyDetailModal';
 import { CompanyApplicantsModal } from './components/CompanyApplicantsModal';
+import { UserApplicationsModal } from './components/UserApplicationsModal';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { AuthModal } from './components/AuthModal';
+import { AdminPanelModal } from './components/AdminPanelModal';
 import { 
   subscribeToAuthChanges, 
   logoutUser, 
@@ -28,7 +30,10 @@ import {
   subscribeToApplications,
   saveApplicationToFirestore,
   updateApplicationStatusInFirestore,
+  deleteApplicationFromFirestore,
   deleteDeveloperFromFirestore,
+  deleteCompanyFromFirestore,
+  saveDeveloperToFirestore,
   saveCompanyToFirestore 
 } from './firebase';
 
@@ -40,24 +45,43 @@ export function App() {
   // Authentication State
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login'); // 'login' | 'register'
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      if (localStorage.getItem('venstack_is_admin') === 'true') {
+        const savedAdmin = localStorage.getItem('venstack_auth_user');
+        if (savedAdmin) return JSON.parse(savedAdmin);
+      }
+    } catch (e) {}
+    return null;
+  });
 
   // Subscribe to Firebase Auth state for real persistence
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges((fbUser) => {
       if (fbUser) {
+        const isAdmin = fbUser.email === 'adminhub@venstack.com' || fbUser.email === 'adminhub@venstackcom' || localStorage.getItem('venstack_is_admin') === 'true';
         const isStoredComp = localStorage.getItem(`venstack_account_type_${fbUser.uid}`) === 'company';
         setCurrentUser((prev) => ({
           ...prev,
           uid: fbUser.uid,
-          name: fbUser.displayName || prev?.name || fbUser.email?.split('@')[0] || 'Miembro Venstack',
+          name: isAdmin ? 'Admin Venstack' : (fbUser.displayName || prev?.name || fbUser.email?.split('@')[0] || 'Miembro Venstack'),
           email: fbUser.email,
-          role: (isStoredComp || prev?.accountType === 'company') ? 'Empresa / Contratante' : (prev?.role || 'Miembro de la Comunidad'),
-          accountType: (isStoredComp || prev?.accountType === 'company') ? 'company' : (prev?.accountType || 'developer'),
+          role: isAdmin ? 'Administrador General' : ((isStoredComp || prev?.accountType === 'company') ? 'Empresa / Contratante' : (prev?.role || 'Miembro de la Comunidad')),
+          accountType: isAdmin ? 'admin' : ((isStoredComp || prev?.accountType === 'company') ? 'company' : (prev?.accountType || 'developer')),
+          isAdmin: isAdmin,
           avatar: fbUser.photoURL || prev?.avatar || '',
           verified: true,
         }));
       } else {
+        if (localStorage.getItem('venstack_is_admin') === 'true') {
+          try {
+            const savedAdmin = localStorage.getItem('venstack_auth_user');
+            if (savedAdmin) {
+              setCurrentUser(JSON.parse(savedAdmin));
+              return;
+            }
+          } catch (e) {}
+        }
         setCurrentUser(null);
       }
     });
@@ -133,6 +157,7 @@ export function App() {
   });
 
   const [isCompanyApplicantsOpen, setIsCompanyApplicantsOpen] = useState(false);
+  const [isUserApplicationsOpen, setIsUserApplicationsOpen] = useState(false);
   const [applicantsFilterJobId, setApplicantsFilterJobId] = useState(null);
 
   // Subscribe to real-time developers, jobs and companies from Firestore
@@ -268,7 +293,18 @@ export function App() {
     }
   };
 
+  const handleOpenPublishJob = () => {
+    if (!currentUser) {
+      setAuthModalMode('login');
+      setIsAuthModalOpen(true);
+    } else {
+      setIsPublishJobOpen(true);
+    }
+  };
+
   const handleLogout = async () => {
+    localStorage.removeItem('venstack_is_admin');
+    localStorage.removeItem('venstack_auth_user');
     try {
       await logoutUser();
     } catch (err) {
@@ -290,6 +326,7 @@ export function App() {
   const [isCompanyProfileOpen, setIsCompanyProfileOpen] = useState(false);
   const [isPublishJobOpen, setIsPublishJobOpen] = useState(false);
   const [isManualPwaOpen, setIsManualPwaOpen] = useState(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
 
   // Cinematic 2-second fullscreen onboarding transition
   const [isIntro, setIsIntro] = useState(true);
@@ -409,31 +446,104 @@ export function App() {
     }
   };
 
+  const handleWithdrawApplication = async (appId) => {
+    setApplications((prev) => {
+      const updated = prev.filter((a) => a.id !== appId);
+      try {
+        localStorage.setItem('venstack_custom_applications', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+    try {
+      await deleteApplicationFromFirestore(appId);
+    } catch (err) {
+      console.warn("Aviso al retirar postulación en Firestore:", err);
+    }
+  };
+
+  // Pending approvals counter for Admin
+  const pendingApprovalCount = useMemo(() => {
+    const pDevs = developers.filter((d) => d.approved === false).length;
+    const pComps = companies.filter((c) => c.approved === false).length;
+    return pDevs + pComps;
+  }, [developers, companies]);
+
+  // Admin update & moderation handlers
+  const handleUpdateDeveloper = async (updatedDev) => {
+    setDevelopers((prev) => prev.map((d) => (d.id === updatedDev.id ? updatedDev : d)));
+    try {
+      const custom = JSON.parse(localStorage.getItem('venstack_custom_developers') || '[]');
+      const filtered = custom.filter((d) => d.id !== updatedDev.id);
+      localStorage.setItem('venstack_custom_developers', JSON.stringify([updatedDev, ...filtered]));
+    } catch (e) {}
+    await saveDeveloperToFirestore(updatedDev);
+  };
+
+  const handleUpdateCompany = async (updatedComp) => {
+    setCompanies((prev) => prev.map((c) => (c.id === updatedComp.id ? updatedComp : c)));
+    try {
+      const custom = JSON.parse(localStorage.getItem('venstack_custom_companies') || '[]');
+      const filtered = custom.filter((c) => c.id !== updatedComp.id);
+      localStorage.setItem('venstack_custom_companies', JSON.stringify([updatedComp, ...filtered]));
+    } catch (e) {}
+    await saveCompanyToFirestore(updatedComp);
+  };
+
+  const handleDeleteDeveloper = async (devId) => {
+    setDevelopers((prev) => prev.filter((d) => d.id !== devId));
+    await deleteDeveloperFromFirestore(devId);
+  };
+
+  const handleDeleteCompany = async (compId) => {
+    setCompanies((prev) => prev.filter((c) => c.id !== compId));
+    await deleteCompanyFromFirestore(compId);
+  };
+
   // Filter developers
   const filteredDevelopers = useMemo(() => {
     return developers.filter((dev) => {
+      // 1. Regla de Aprobación: 
+      // Si un perfil NO está aprobado (approved === false), solo lo puede ver su autor o el Admin
+      const isApproved = dev.approved !== false;
+      const isOwner = Boolean(
+        currentUser && (
+          (dev.userId && dev.userId === currentUser.uid) ||
+          dev.id === `dev-${currentUser.uid}` ||
+          (currentUser.email && dev.email && dev.email.toLowerCase() === currentUser.email.toLowerCase())
+        )
+      );
+      const isAdmin = Boolean(
+        currentUser?.isAdmin || 
+        currentUser?.email === 'adminhub@venstack.com' || 
+        currentUser?.email === 'adminhub@venstackcom'
+      );
+
+      if (!isApproved && !isOwner && !isAdmin) {
+        return false;
+      }
+
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
         dev.name.toLowerCase().includes(q) ||
         dev.role.toLowerCase().includes(q) ||
         dev.city.toLowerCase().includes(q) ||
-        dev.skills.some((s) => s.toLowerCase().includes(q));
+        (dev.skills && dev.skills.some((s) => s.toLowerCase().includes(q)));
 
       if (!matchesSearch) return false;
 
       // Category filter by discipline
       if (devFilter === 'software') {
-        return dev.category === 'software' || dev.role.toLowerCase().includes('engineer') || dev.role.toLowerCase().includes('developer') || dev.skills.includes('React') || dev.skills.includes('Go');
+        return dev.category === 'software' || dev.role.toLowerCase().includes('engineer') || dev.role.toLowerCase().includes('developer') || (dev.skills && (dev.skills.includes('React') || dev.skills.includes('Go')));
       }
       if (devFilter === 'uiux') {
         return dev.category === 'uiux' || dev.role.toLowerCase().includes('ui') || dev.role.toLowerCase().includes('ux') || dev.role.toLowerCase().includes('design');
       }
       if (devFilter === 'ai') {
-        return dev.category === 'ai' || dev.role.toLowerCase().includes('ai') || dev.role.toLowerCase().includes('machine learning') || dev.skills.includes('LangChain');
+        return dev.category === 'ai' || dev.role.toLowerCase().includes('ai') || dev.role.toLowerCase().includes('machine learning') || (dev.skills && dev.skills.includes('LangChain'));
       }
       if (devFilter === 'security') {
-        return dev.category === 'security' || dev.role.toLowerCase().includes('security') || dev.role.toLowerCase().includes('hacker') || dev.skills.includes('Pentesting');
+        return dev.category === 'security' || dev.role.toLowerCase().includes('security') || dev.role.toLowerCase().includes('hacker') || (dev.skills && dev.skills.includes('Pentesting'));
       }
       if (devFilter === 'junior') {
         return dev.level === 'Junior';
@@ -441,7 +551,7 @@ export function App() {
 
       return true;
     });
-  }, [developers, searchQuery, devFilter]);
+  }, [developers, searchQuery, devFilter, currentUser]);
 
   // Filter jobs
   const filteredJobs = useMemo(() => {
@@ -563,7 +673,7 @@ export function App() {
           accountType: 'company',
         }));
       }
-    } else if (userProfile && currentUser && !isCompanyUser) {
+    } else if (userProfile && currentUser && !isCompanyUser && !currentUser.isAdmin) {
       if (
         (userProfile.avatar && userProfile.avatar !== currentUser.avatar) ||
         (userProfile.name && userProfile.name !== currentUser.name) ||
@@ -682,6 +792,22 @@ export function App() {
     });
   }, [applications, isCompanyUser, companyProfile, currentUser?.name, currentCompanyJobs]);
 
+  const myApplications = useMemo(() => {
+    if (!currentUser) return [];
+    const currentUid = currentUser.uid;
+    const currentEmail = currentUser.email?.toLowerCase().trim();
+    const currentName = currentUser.name?.toLowerCase().trim();
+    const devId = userProfile?.id || (currentUid ? `dev-${currentUid}` : null);
+
+    return applications.filter((app) => {
+      if (devId && app.candidateId && app.candidateId === devId) return true;
+      if (currentUid && app.candidateId && (app.candidateId === currentUid || app.candidateId === `dev-${currentUid}`)) return true;
+      if (currentEmail && app.candidateEmail && app.candidateEmail.toLowerCase().trim() === currentEmail) return true;
+      if (currentName && app.candidateName && app.candidateName.toLowerCase().trim() === currentName) return true;
+      return false;
+    });
+  }, [applications, currentUser, userProfile]);
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingBottom: '96px', overflowX: 'hidden', width: '100%' }}>
       
@@ -691,13 +817,17 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenCreateProfile={handleOpenCreateProfile}
-        onOpenPublishJob={() => setIsPublishJobOpen(true)}
+        onOpenPublishJob={handleOpenPublishJob}
         onOpenPwaInstall={() => setIsManualPwaOpen(true)}
         onOpenApplicants={() => {
           setApplicantsFilterJobId(null);
           setIsCompanyApplicantsOpen(true);
         }}
         applicantsCount={companyApplicants.length}
+        onOpenMyApplications={currentUser ? () => setIsUserApplicationsOpen(true) : null}
+        myApplicationsCount={currentUser ? myApplications.length : 0}
+        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+        pendingApprovalCount={pendingApprovalCount}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currentUser={currentUser}
@@ -727,40 +857,8 @@ export function App() {
         ref={directoryRef} 
         id="directory-section"
         className="main-content-wrapper" 
-        style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', flex: '1', boxSizing: 'border-box', scrollMarginTop: '64px' }}
+        style={{ maxWidth: '1200px', width: '100%', margin: '0 auto', flex: '1', boxSizing: 'border-box', scrollMarginTop: '64px', paddingTop: '24px' }}
       >
-        
-        {/* Mobile quick search input */}
-        <div style={{ margin: '10px 0 14px', display: 'none' }} id="mobile-directory-search">
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            background: '#ffffff',
-            border: '1px solid rgba(0,0,0,0.1)',
-            borderRadius: '999px',
-            padding: '8px 14px',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-            width: '100%',
-            boxSizing: 'border-box'
-          }}>
-            <Search size={14} color="#86868b" style={{ flexShrink: 0 }} />
-            <input
-              type="text"
-              placeholder="Filtrar por stack, rol o ciudad..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                outline: 'none',
-                fontSize: '12.5px',
-                width: '100%',
-                marginLeft: '8px',
-                padding: 0
-              }}
-            />
-          </div>
-        </div>
 
         {/* ----------------------------------------------------
             TAB 1: DESARROLLADORES
@@ -768,15 +866,72 @@ export function App() {
         {activeTab === 'developers' && (
           <div style={{ width: '100%', minWidth: 0 }}>
             
-            {/* Section Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div>
-                <h2 style={{ fontSize: '18px', fontWeight: 800, color: '#1d1d1f', letterSpacing: '-0.02em', margin: 0 }}>
+            {/* Section Header with Integrated Search Input */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between', 
+              gap: '16px',
+              flexWrap: 'wrap',
+              marginBottom: '14px' 
+            }}>
+              <div style={{ minWidth: '240px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#1d1d1f', letterSpacing: '-0.02em', margin: 0 }}>
                   Directorio de Profesionales Tech
                 </h2>
-                <p style={{ fontSize: '12px', color: '#86868b', margin: '2px 0 0 0' }}>
-                  {filteredDevelopers.length} perfiles en Software, UI/UX, IA y Ciberseguridad
+                <p style={{ fontSize: '12px', color: '#86868b', margin: '3px 0 0 0' }}>
+                  {filteredDevelopers.length} perfiles disponibles en Software, UI/UX, IA y Ciberseguridad
                 </p>
+              </div>
+
+              {/* Input de Búsqueda Integrado en Directorio */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: '#ffffff',
+                border: '1.5px solid rgba(0, 0, 0, 0.1)',
+                borderRadius: '14px',
+                padding: '9px 14px',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                flex: '1 1 300px',
+                maxWidth: '440px',
+                minWidth: '220px',
+                boxSizing: 'border-box'
+              }}>
+                <Search size={16} color="#0d9488" style={{ flexShrink: 0 }} />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre, tecnología, rol o ciudad..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    outline: 'none',
+                    fontSize: '13px',
+                    color: '#1d1d1f',
+                    width: '100%',
+                    marginLeft: '8px',
+                    padding: 0
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 0,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      color: '#86868b'
+                    }}
+                    title="Limpiar búsqueda"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -860,7 +1015,7 @@ export function App() {
               </div>
 
               <button
-                onClick={() => setIsPublishJobOpen(true)}
+                onClick={handleOpenPublishJob}
                 className="apple-btn-primary"
                 style={{ fontSize: '12px' }}
               >
@@ -886,14 +1041,47 @@ export function App() {
               ))}
             </div>
 
+            {/* Quick banner for candidate applications */}
+            {currentUser && !isCompanyUser && myApplications.length > 0 && (
+              <div 
+                onClick={() => setIsUserApplicationsOpen(true)}
+                style={{
+                  background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.08) 0%, rgba(15, 118, 110, 0.04) 100%)',
+                  border: '1px solid rgba(13, 148, 136, 0.2)',
+                  borderRadius: '14px',
+                  padding: '10px 16px',
+                  marginBottom: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Send size={14} color="#0d9488" />
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: '#0f766e' }}>
+                    Has enviado {myApplications.length} {myApplications.length === 1 ? 'postulación' : 'postulaciones'}.
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#6e6e73' }}>
+                    Toca aquí para ver el estado y feedback en tiempo real.
+                  </span>
+                </div>
+                <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#0d9488', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  Ver mis postulaciones ➔
+                </span>
+              </div>
+            )}
+
             {/* Jobs Grid */}
             <div className="cards-grid">
               {filteredJobs.map((job) => {
                 const isOwnJob = isCompanyUser && (
-                  job.companyId === currentCompanyProfile?.id ||
-                  job.company?.toLowerCase() === currentCompanyProfile?.name?.toLowerCase()
+                  job.companyId === companyProfile?.id ||
+                  job.company?.toLowerCase() === companyProfile?.name?.toLowerCase()
                 );
                 const count = applications.filter(a => a.jobId === job.id).length;
+                const userApp = myApplications.find((a) => a.jobId === job.id);
                 return (
                   <JobCard
                     key={job.id}
@@ -903,8 +1091,12 @@ export function App() {
                     isOwnJob={isOwnJob}
                     applicantsCount={count}
                     onViewApplicants={() => {
-                      setIsApplicantsModalOpen(true);
+                      setApplicantsFilterJobId(job.id);
+                      setIsCompanyApplicantsOpen(true);
                     }}
+                    hasApplied={Boolean(userApp)}
+                    applicationStatus={userApp?.status}
+                    onViewMyApplication={() => setIsUserApplicationsOpen(true)}
                   />
                 );
               })}
@@ -913,9 +1105,9 @@ export function App() {
         )}
 
         {/* ----------------------------------------------------
-            TAB 3: SQUADS COMUNITARIOS
+            TAB 3: SQUADS COMUNITARIOS (Oculto temporalmente)
             ---------------------------------------------------- */}
-        {activeTab === 'squads' && (
+        {false && activeTab === 'squads' && (
           <div style={{ width: '100%', minWidth: 0 }}>
             
             {/* Apple Banner Card */}
@@ -1002,9 +1194,15 @@ export function App() {
           onApplyToJob={handleApplyToJob}
           isCompanyUser={isCompanyUser}
           applicantsCount={applications.filter(a => a.jobId === selectedJob.id).length}
+          existingApplication={myApplications.find((a) => a.jobId === selectedJob.id)}
+          onOpenMyApplications={() => {
+            setSelectedJob(null);
+            setIsUserApplicationsOpen(true);
+          }}
           onViewApplicants={(job) => {
             setSelectedJob(null);
-            setIsApplicantsModalOpen(true);
+            setApplicantsFilterJobId(job?.id || null);
+            setIsCompanyApplicantsOpen(true);
           }}
         />
       )}
@@ -1097,6 +1295,28 @@ export function App() {
         />
       )}
 
+      {isUserApplicationsOpen && (
+        <UserApplicationsModal
+          isOpen={true}
+          onClose={() => setIsUserApplicationsOpen(false)}
+          applications={myApplications}
+          jobs={jobs}
+          onSelectJob={(job) => {
+            setIsUserApplicationsOpen(false);
+            setSelectedJob(job);
+          }}
+          onSelectCompany={(compName) => {
+            setIsUserApplicationsOpen(false);
+            handleSelectCompany(compName);
+          }}
+          onExploreJobs={() => {
+            setIsUserApplicationsOpen(false);
+            setActiveTab('jobs');
+          }}
+          onWithdrawApplication={handleWithdrawApplication}
+        />
+      )}
+
       {isPublishJobOpen && (
         <PublishJobModal
           onClose={() => setIsPublishJobOpen(false)}
@@ -1113,6 +1333,24 @@ export function App() {
         onClose={() => setIsAuthModalOpen(false)}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
+        }}
+      />
+
+      {/* Admin Panel Modal (Moderación & Aprobación de Profesionales y Empresas) */}
+      <AdminPanelModal
+        isOpen={isAdminPanelOpen}
+        onClose={() => setIsAdminPanelOpen(false)}
+        developers={developers}
+        companies={companies}
+        onUpdateDeveloper={handleUpdateDeveloper}
+        onUpdateCompany={handleUpdateCompany}
+        onDeleteDeveloper={handleDeleteDeveloper}
+        onDeleteCompany={handleDeleteCompany}
+        onSelectDev={(dev) => {
+          setSelectedDev(dev);
+        }}
+        onSelectCompany={(comp) => {
+          setSelectedCompany(comp);
         }}
       />
 
@@ -1172,8 +1410,16 @@ export function App() {
         onOpenCreateProfile={handleOpenCreateProfile}
         hasProfile={hasProfile}
         isCompanyUser={isCompanyUser}
-        onOpenApplicants={() => setIsApplicantsModalOpen(true)}
+        currentUser={currentUser}
+        onOpenApplicants={() => {
+          setApplicantsFilterJobId(null);
+          setIsCompanyApplicantsOpen(true);
+        }}
         applicantsCount={companyApplicants.length}
+        onOpenMyApplications={currentUser ? () => setIsUserApplicationsOpen(true) : null}
+        myApplicationsCount={currentUser ? myApplications.length : 0}
+        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+        pendingApprovalCount={pendingApprovalCount}
       />
 
       {/* Progressive Web App (PWA) Installer */}

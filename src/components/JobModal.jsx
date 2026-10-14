@@ -10,7 +10,9 @@ export const JobModal = ({
   onApplyToJob,
   isCompanyUser = false,
   onViewApplicants,
-  applicantsCount = 0
+  applicantsCount = 0,
+  existingApplication = null,
+  onOpenMyApplications = null
 }) => {
   const [applied, setApplied] = useState(false);
   const [candidateName, setCandidateName] = useState(userProfile?.name || currentUser?.name || '');
@@ -228,7 +230,7 @@ export const JobModal = ({
 
           {/* 1-Click Apply Form or Confirmation */}
           <div style={{ marginTop: '4px' }}>
-            {applied ? (
+            {existingApplication || applied ? (
               <div style={{
                 padding: '16px',
                 background: '#f0fdf4',
@@ -238,11 +240,38 @@ export const JobModal = ({
               }}>
                 <CheckCircle size={32} color="#16a34a" style={{ margin: '0 auto 8px' }} />
                 <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#14532d', margin: 0 }}>
-                  ¡Postulación Enviada con Éxito!
+                  {existingApplication ? 'Ya te has postulado a esta vacante' : '¡Postulación Enviada con Éxito!'}
                 </h4>
-                <p style={{ fontSize: '12px', color: '#166534', margin: '4px 0 0 0' }}>
-                  El contratante revisará tu perfil verificado en Venstack y te responderá por tus canales directos.
+                <p style={{ fontSize: '12px', color: '#166534', margin: '4px 0 10px 0' }}>
+                  {existingApplication 
+                    ? `Estado actual de tu candidatura: ${existingApplication.status === 'pending' ? 'En revisión 🟡' : existingApplication.status === 'contacted' ? 'Contactado 🔵' : existingApplication.status === 'interview' ? 'En entrevista 🟣' : existingApplication.status === 'accepted' ? 'Seleccionado 🟢' : 'Proceso finalizado ⚪'}`
+                    : 'El contratante revisará tu perfil verificado en Venstack y te responderá por tus canales directos.'}
                 </p>
+                {onOpenMyApplications && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenMyApplications();
+                    }}
+                    style={{
+                      background: '#0d9488',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '999px',
+                      padding: '7px 16px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <span>Ver Mis Postulaciones</span>
+                    <Send size={12} />
+                  </button>
+                )}
               </div>
             ) : (
               <form onSubmit={handleApply} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

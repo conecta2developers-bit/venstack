@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, ArrowRight, Coins, Briefcase, Users } from 'lucide-react';
+import { Clock, ArrowRight, Coins, Briefcase, Users, Check } from 'lucide-react';
 
 export const JobCard = ({
   job,
@@ -7,7 +7,10 @@ export const JobCard = ({
   onSelectCompany,
   isOwnJob = false,
   applicantsCount = 0,
-  onViewApplicants
+  onViewApplicants,
+  hasApplied = false,
+  applicationStatus = null,
+  onViewMyApplication = null
 }) => {
   return (
     <div 
@@ -225,6 +228,35 @@ export const JobCard = ({
           >
             <Users size={12} />
             <span>Postulantes ({applicantsCount})</span>
+          </button>
+        ) : hasApplied ? (
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onViewMyApplication) {
+                onViewMyApplication();
+              } else {
+                onSelectJob(job);
+              }
+            }}
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              color: '#0d9488',
+              background: 'rgba(13, 148, 136, 0.08)',
+              padding: '4px 10px',
+              borderRadius: '8px',
+              border: '1px solid rgba(13, 148, 136, 0.22)',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.15s ease'
+            }}
+            title="Ver el estado de tu postulación"
+          >
+            <Check size={12} strokeWidth={2.5} />
+            <span>Postulado{applicationStatus === 'pending' ? ' • En revisión' : applicationStatus === 'contacted' ? ' • Contactado' : applicationStatus === 'interview' ? ' • En entrevista' : applicationStatus === 'accepted' ? ' • Seleccionado' : ''}</span>
           </button>
         ) : (
           <button 

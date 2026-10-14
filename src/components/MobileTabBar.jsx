@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Briefcase, Layers, MessageSquare, Plus, Edit3, Building2, UserCheck } from 'lucide-react';
+import { Users, Briefcase, Layers, MessageSquare, Plus, Edit3, Building2, UserCheck, Send, Shield } from 'lucide-react';
 
 export const MobileTabBar = ({
   activeTab,
@@ -7,13 +7,17 @@ export const MobileTabBar = ({
   onOpenCreateProfile,
   hasProfile = false,
   isCompanyUser = false,
+  currentUser = null,
   onOpenApplicants,
-  applicantsCount = 0
+  applicantsCount = 0,
+  onOpenMyApplications = null,
+  myApplicationsCount = 0,
+  onOpenAdminPanel = null,
+  pendingApprovalCount = 0
 }) => {
   const tabs = [
     { id: 'developers', label: 'Talento', icon: Users },
     { id: 'jobs', label: 'Empleos', icon: Briefcase, hasBadge: true },
-    { id: 'squads', label: 'Squads', icon: Layers },
     { id: 'community', label: 'Comunidad', icon: MessageSquare },
   ];
 
@@ -146,6 +150,105 @@ export const MobileTabBar = ({
             }}>
               Postulados
             </span>
+          </button>
+        )}
+
+        {/* Dedicated "Mis Postulaciones" Button for Candidate / Developer */}
+        {currentUser && !isCompanyUser && onOpenMyApplications && (
+          <button
+            onClick={onOpenMyApplications}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '6px 4px',
+              borderRadius: '18px',
+              border: 'none',
+              background: 'rgba(13, 148, 136, 0.08)',
+              color: '#0d9488',
+              cursor: 'pointer',
+              position: 'relative',
+              flex: 1,
+              transition: 'all 0.18s ease'
+            }}
+            title="Ver el estado de mis postulaciones"
+          >
+            <div style={{ position: 'relative' }}>
+              <Send size={17} strokeWidth={2.4} color="#0d9488" />
+              {myApplicationsCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-7px',
+                  background: '#0d9488',
+                  color: '#ffffff',
+                  fontSize: '9px',
+                  fontWeight: 800,
+                  borderRadius: '10px',
+                  padding: '1px 4px',
+                  minWidth: '13px',
+                  textAlign: 'center',
+                  lineHeight: '1'
+                }}>
+                  {myApplicationsCount}
+                </span>
+              )}
+            </div>
+            <span style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              color: '#0d9488',
+              marginTop: '2px',
+              letterSpacing: '-0.01em',
+              lineHeight: 1
+            }}>
+              Postulaciones
+            </span>
+          </button>
+        )}
+
+        {/* Admin Moderation Button on Mobile */}
+        {(currentUser?.isAdmin || currentUser?.email === 'adminhub@venstack.com' || currentUser?.email === 'adminhub@venstackcom') && onOpenAdminPanel && (
+          <button
+            onClick={onOpenAdminPanel}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '5px 8px',
+              borderRadius: '18px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+              color: '#38bdf8',
+              cursor: 'pointer',
+              position: 'relative'
+            }}
+            title="Panel de Administración"
+          >
+            <Shield size={18} strokeWidth={2.4} color="#38bdf8" />
+            <span style={{
+              fontSize: '9px',
+              fontWeight: 800,
+              color: '#ffffff',
+              marginTop: '2px',
+              lineHeight: 1
+            }}>
+              Admin
+            </span>
+            {pendingApprovalCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-2px',
+                right: '-2px',
+                width: '8px',
+                height: '8px',
+                backgroundColor: '#ea580c',
+                borderRadius: '50%',
+                border: '1.5px solid #ffffff'
+              }} />
+            )}
           </button>
         )}
 

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { 
   X, ShieldCheck, Zap, Wifi, ExternalLink, ThumbsUp, 
-  DollarSign, CheckCircle2, MessageCircle, Mail, MapPin, BatteryCharging, Share2
+  DollarSign, CheckCircle2, MessageCircle, Mail, MapPin, BatteryCharging, Share2,
+  Phone, Star, Clock
 } from 'lucide-react';
+import { getFallbackAvatar } from '../utils/avatar';
 
 const GithubIcon = ({ size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -67,11 +69,12 @@ export const DeveloperModal = ({ dev, onClose, onEndorse }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ position: 'relative' }}>
               <img
-                src={dev.avatar}
+                src={dev.avatar || getFallbackAvatar(dev.name)}
                 alt={dev.name}
                 style={{ width: '64px', height: '64px', borderRadius: '18px', objectFit: 'cover', border: '1px solid rgba(0,0,0,0.08)' }}
                 onError={(e) => {
-                  e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(dev.name || 'Dev')}`;
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = getFallbackAvatar(dev.name);
                 }}
               />
               <span style={{
@@ -108,14 +111,72 @@ export const DeveloperModal = ({ dev, onClose, onEndorse }) => {
                     Verificado
                   </span>
                 )}
+
+                {(dev.featured || dev.isFeatured || dev.destacado) && (
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    background: 'rgba(245, 158, 11, 0.12)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#b45309'
+                  }}>
+                    <Star size={11} color="#f59e0b" fill="#f59e0b" />
+                    Destacado
+                  </span>
+                )}
+
+                {dev.approved === false && (
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    background: '#fef3c7',
+                    border: '1px solid #fde68a',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    color: '#b45309'
+                  }}>
+                    <Clock size={11} />
+                    Pendiente de Aprobación
+                  </span>
+                )}
               </div>
               <p style={{ fontSize: '13px', fontWeight: 600, color: '#424245', margin: '2px 0 0 0' }}>
                 {dev.role}
               </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '12px', color: '#86868b' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', fontSize: '12px', color: '#86868b', flexWrap: 'wrap' }}>
                 <span>{dev.city}</span>
                 <span>•</span>
                 <span style={{ color: '#16a34a', fontWeight: 600 }}>{dev.availabilityText}</span>
+                {dev.phone && (
+                  <>
+                    <span>•</span>
+                    <a
+                      href={`https://wa.me/${dev.phone.replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: '#059669',
+                        fontWeight: 700,
+                        textDecoration: 'none',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                      title="Contactar vía WhatsApp"
+                    >
+                      <Phone size={12} color="#059669" />
+                      <span>{dev.phone}</span>
+                    </a>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -220,73 +281,99 @@ export const DeveloperModal = ({ dev, onClose, onEndorse }) => {
             </div>
           </div>
 
-          {/* Proof of Work Project */}
-          {dev.featuredProject && (
-            <div>
-              <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#86868b', display: 'block', marginBottom: '6px' }}>
-                Proof of Work (Proyecto Real)
-              </span>
-              <div style={{
-                background: '#ffffff',
-                border: '1px solid rgba(0,0,0,0.08)',
-                borderRadius: '16px',
-                padding: '14px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <h4 style={{ fontSize: '14px', fontWeight: 700, color: '#1d1d1f', margin: 0 }}>
-                    {dev.featuredProject.title}
-                  </h4>
-                  <div style={{ display: 'flex', gap: '6px' }}>
-                    <a
-                      href={dev.featuredProject.githubUrl}
-                      target="_blank"
-                      rel="noreferrer"
+          {/* Portfolio & Projects (up to 3) */}
+          {((dev.projects && dev.projects.length > 0) || dev.featuredProject) && (() => {
+            const rawList = (dev.projects && Array.isArray(dev.projects) && dev.projects.length > 0)
+              ? dev.projects.filter(p => p.name || p.url)
+              : [
+                  {
+                    name: dev.featuredProject?.title || 'Proyecto Destacado',
+                    url: dev.featuredProject?.demoUrl || dev.featuredProject?.githubUrl || '',
+                    description: dev.featuredProject?.description
+                  }
+                ];
+
+            if (rawList.length === 0) return null;
+
+            return (
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#86868b', display: 'block', marginBottom: '8px' }}>
+                  Portafolio & Proyectos ({rawList.length})
+                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {rawList.map((proj, idx) => (
+                    <div
+                      key={idx}
                       style={{
-                        padding: '4px 10px',
-                        background: '#f5f5f7',
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        color: '#1d1d1f',
-                        display: 'inline-flex',
+                        background: '#ffffff',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        borderRadius: '14px',
+                        padding: '12px 14px',
+                        display: 'flex',
                         alignItems: 'center',
-                        gap: '4px'
+                        justifyContent: 'space-between',
+                        gap: '12px'
                       }}
                     >
-                      <GithubIcon size={12} />
-                      <span>Repo</span>
-                    </a>
-                    <a
-                      href={dev.featuredProject.demoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{
-                        padding: '4px 10px',
-                        background: '#f0fdfa',
-                        border: '1px solid #ccfbf1',
-                        borderRadius: '8px',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        color: '#0d9488',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}
-                    >
-                      <span>Live Demo</span>
-                      <ExternalLink size={11} />
-                    </a>
-                  </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{
+                            width: '22px',
+                            height: '22px',
+                            borderRadius: '6px',
+                            background: 'rgba(13, 148, 136, 0.1)',
+                            color: '#0d9488',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}>
+                            {idx + 1}
+                          </span>
+                          <h4 style={{ fontSize: '13.5px', fontWeight: 700, color: '#1d1d1f', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {proj.name || 'Proyecto Sin Nombre'}
+                          </h4>
+                        </div>
+                        {proj.description && (
+                          <p style={{ fontSize: '11.5px', color: '#6e6e73', margin: '4px 0 0 30px', lineHeight: 1.4 }}>
+                            {proj.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {proj.url && (
+                        <a
+                          href={proj.url.startsWith('http') ? proj.url : `https://${proj.url}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{
+                            padding: '6px 12px',
+                            background: '#f0fdfa',
+                            border: '1px solid #ccfbf1',
+                            borderRadius: '8px',
+                            fontSize: '11.5px',
+                            fontWeight: 700,
+                            color: '#0d9488',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            textDecoration: 'none',
+                            flexShrink: 0,
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          <span>Ver Proyecto</span>
+                          <ExternalLink size={12} />
+                        </a>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <p style={{ fontSize: '12px', color: '#6e6e73', margin: 0, lineHeight: 1.5 }}>
-                  {dev.featuredProject.description}
-                </p>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Full Skills */}
           <div>
