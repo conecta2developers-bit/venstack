@@ -327,12 +327,37 @@ export const COMMUNITY_TOPICS = [
     role: "Lead UI/UX Designer",
     avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80",
     timeAgo: "Hace 20 min",
+    createdAt: Date.now() - 20 * 60 * 1000,
     category: "Diseño & Producto",
     title: "¿Cómo estructuran sus entregables de Figma para los desarrolladores frontend?",
     content: "En el squad estamos usando Figma Dev Mode y design tokens organizados. Ha reducido los malentendidos a cero entre diseño y código. ¿Qué metodologías usan ustedes?",
     likes: 42,
-    comments: 15,
-    tag: "UI/UX"
+    likedBy: [],
+    tag: "UI/UX",
+    comments: [
+      {
+        id: "comm-1-1",
+        author: "Carlos Mendoza",
+        role: "Senior Full Stack Dev",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+        timeAgo: "Hace 15 min",
+        createdAt: Date.now() - 15 * 60 * 1000,
+        content: "Nosotros sincronizamos las variables de Figma directamente con un archivo `tokens.json` usando un plugin y GitHub Actions. Eso nos ahorra horas de mapeo manual en CSS y Tailwind.",
+        likes: 12,
+        likedBy: []
+      },
+      {
+        id: "comm-1-2",
+        author: "Alejandro Pérez",
+        role: "Frontend Engineer",
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+        timeAgo: "Hace 5 min",
+        createdAt: Date.now() - 5 * 60 * 1000,
+        content: "Lo más importante es que los nombres de los estados (hover, active, disabled, focus) coincidan 1 a 1 con las props de los componentes en React.",
+        likes: 5,
+        likedBy: []
+      }
+    ]
   },
   {
     id: "post-2",
@@ -340,12 +365,26 @@ export const COMMUNITY_TOPICS = [
     role: "Especialista en Ciberseguridad",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
     timeAgo: "Hace 1 hora",
-    category: "Seguridad",
+    createdAt: Date.now() - 60 * 60 * 1000,
+    category: "Ciberseguridad",
     title: "Alerta: Nuevos ataques de phishing dirigidos a programadores con repositorios falsos",
     content: "Mucho cuidado con las ofertas de trabajo en LinkedIn o Telegram que les piden clonar un repositorio y correr un script de Node para una prueba técnica. Varios traen paquetes maliciosos para robar cookies de sesión y wallets.",
     likes: 89,
-    comments: 31,
-    tag: "Ciberseguridad"
+    likedBy: [],
+    tag: "Ciberseguridad",
+    comments: [
+      {
+        id: "comm-2-1",
+        author: "Daniela Morales",
+        role: "DevOps & Cloud Architect",
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80",
+        timeAgo: "Hace 40 min",
+        createdAt: Date.now() - 40 * 60 * 1000,
+        content: "¡Ojo con esto! La recomendación de oro es correr siempre las pruebas técnicas dentro de un contenedor Docker aislado o en un DevContainer, jamás con permisos directos en su máquina local.",
+        likes: 28,
+        likedBy: []
+      }
+    ]
   },
   {
     id: "post-3",
@@ -353,12 +392,26 @@ export const COMMUNITY_TOPICS = [
     role: "AI Engineer",
     avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&auto=format&fit=crop&q=80",
     timeAgo: "Hace 3 horas",
+    createdAt: Date.now() - 180 * 60 * 1000,
     category: "Inteligencia Artificial",
     title: "¿Qué modelos locales (Ollama) están corriendo en sus laptops para desarrollo sin internet?",
     content: "Para cuando hay intermitencias de internet, correr DeepSeek Coder o Llama 3 localmente en la Mac o PC salva el día por completo. ¿Cuál recomiendan para autocompletado rápido?",
     likes: 67,
-    comments: 24,
-    tag: "IA"
+    likedBy: [],
+    tag: "IA",
+    comments: [
+      {
+        id: "comm-3-1",
+        author: "Jesús Silva",
+        role: "Backend Python / Go Dev",
+        avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=80",
+        timeAgo: "Hace 2 horas",
+        createdAt: Date.now() - 120 * 60 * 1000,
+        content: "Yo uso `qwen2.5-coder:7b` en Ollama integrado con Continue.dev en VS Code. En una máquina con 16GB de RAM vuela y la calidad de código es impresionante.",
+        likes: 19,
+        likedBy: []
+      }
+    ]
   }
 ];
 

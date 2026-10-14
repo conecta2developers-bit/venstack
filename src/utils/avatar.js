@@ -13,4 +13,12 @@ export const getFallbackAvatar = (name = '') => {
   return getProfilePlaceholderSvg();
 };
 
+export const getSafeAvatarUrl = (avatarUrl, name = '') => {
+  if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '') {
+    return avatarUrl;
+  }
+  return getFallbackAvatar(name);
+};
+
+
 

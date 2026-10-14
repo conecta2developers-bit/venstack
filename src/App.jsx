@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Plus, Search, Smartphone, Send, X } from 'lucide-react';
 
-import { INITIAL_DEVELOPERS, INITIAL_JOBS, INITIAL_SQUADS, INITIAL_COMPANIES, INITIAL_APPLICATIONS } from './data/mockData';
+import { INITIAL_DEVELOPERS, INITIAL_JOBS, INITIAL_SQUADS, INITIAL_COMPANIES, INITIAL_APPLICATIONS, COMMUNITY_TOPICS } from './data/mockData';
 import { Navbar } from './components/Navbar';
 import { OnboardingHero } from './components/OnboardingHero';
 import { MobileTabBar } from './components/MobileTabBar';
@@ -34,7 +34,13 @@ import {
   deleteDeveloperFromFirestore,
   deleteCompanyFromFirestore,
   saveDeveloperToFirestore,
-  saveCompanyToFirestore 
+  saveCompanyToFirestore,
+  saveCommunityPostToFirestore,
+  subscribeToCommunityPosts,
+  toggleCommunityPostLikeInFirestore,
+  addCommentToCommunityPostInFirestore,
+  deleteCommunityPostFromFirestore,
+  deleteCommentFromCommunityPostInFirestore
 } from './firebase';
 
 export function App() {
@@ -156,6 +162,22 @@ export function App() {
     return INITIAL_APPLICATIONS;
   });
 
+  const [communityPosts, setCommunityPosts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('venstack_custom_posts');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const customIds = new Set(parsed.map((p) => p.id));
+          return [...parsed, ...COMMUNITY_TOPICS.filter((t) => !customIds.has(t.id))];
+        }
+      }
+    } catch (e) {
+      console.warn('Aviso cargando posts locales:', e);
+    }
+    return COMMUNITY_TOPICS;
+  });
+
   const [isCompanyApplicantsOpen, setIsCompanyApplicantsOpen] = useState(false);
   const [isUserApplicationsOpen, setIsUserApplicationsOpen] = useState(false);
   const [applicantsFilterJobId, setApplicantsFilterJobId] = useState(null);
@@ -264,11 +286,22 @@ export function App() {
       }
     });
 
+    const unsubPosts = subscribeToCommunityPosts((firestorePosts) => {
+      if (firestorePosts && firestorePosts.length > 0) {
+        setCommunityPosts((prev) => {
+          const firestoreIds = new Set(firestorePosts.map((p) => p.id));
+          const existingWithoutOverlap = prev.filter((p) => !firestoreIds.has(p.id));
+          return [...firestorePosts, ...existingWithoutOverlap];
+        });
+      }
+    });
+
     return () => {
       if (unsubDevs) unsubDevs();
       if (unsubJobs) unsubJobs();
       if (unsubCompanies) unsubCompanies();
       if (unsubApps) unsubApps();
+      if (unsubPosts) unsubPosts();
     };
   }, []);
 
@@ -497,6 +530,84 @@ export function App() {
   const handleDeleteCompany = async (compId) => {
     setCompanies((prev) => prev.filter((c) => c.id !== compId));
     await deleteCompanyFromFirestore(compId);
+  };
+
+  // Community Handlers (Posts, Likes, Comments)
+  const handleSavePost = async (postData) => {
+    const saved = await saveCommunityPostToFirestore(postData);
+    setCommunityPosts((prev) => [saved, ...prev.filter((p) => p.id !== saved.id)]);
+    return saved;
+  };
+
+  const handleTogglePostLike = async (postId) => {
+    const userIdentifier = currentUser?.uid || currentUser?.email || 'anon-local';
+    setCommunityPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const likedBy = Array.isArray(p.likedBy) ? [...p.likedBy] : [];
+          const hasLiked = likedBy.includes(userIdentifier);
+          const newLikedBy = hasLiked
+            ? likedBy.filter((u) => u !== userIdentifier)
+            : [...likedBy, userIdentifier];
+          const newLikes = Math.max(0, (typeof p.likes === 'number' ? p.likes : 0) + (hasLiked ? -1 : 1));
+          return { ...p, likes: newLikes, likedBy: newLikedBy };
+        }
+        return p;
+      })
+    );
+    await toggleCommunityPostLikeInFirestore(postId, userIdentifier);
+  };
+
+  const handleAddComment = async (postId, commentContent) => {
+    if (!commentContent || !commentContent.trim()) return;
+    const authorName = currentUser?.name || userProfile?.name || companyProfile?.name || 'Miembro de Venstack';
+    const authorRole = isCompanyUser ? (companyProfile?.name ? `Empresa • ${companyProfile.name}` : 'Empresa') : (userProfile?.role || 'Desarrollador');
+    const authorAvatar = currentUser?.avatar || userProfile?.avatar || companyProfile?.avatar || '';
+    const userId = currentUser?.uid || currentUser?.email || 'anon';
+
+    const commentData = {
+      id: `comm-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      author: authorName,
+      role: authorRole,
+      avatar: authorAvatar,
+      userId,
+      content: commentContent.trim(),
+      createdAt: Date.now(),
+      timeAgo: 'Justo ahora',
+      likes: 0,
+      likedBy: []
+    };
+
+    setCommunityPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const comments = Array.isArray(p.comments) ? [...p.comments, commentData] : [commentData];
+          return { ...p, comments };
+        }
+        return p;
+      })
+    );
+
+    const added = await addCommentToCommunityPostInFirestore(postId, commentData);
+    return added;
+  };
+
+  const handleDeletePost = async (postId) => {
+    setCommunityPosts((prev) => prev.filter((p) => p.id !== postId));
+    await deleteCommunityPostFromFirestore(postId);
+  };
+
+  const handleDeleteComment = async (postId, commentId) => {
+    setCommunityPosts((prev) =>
+      prev.map((p) => {
+        if (p.id === postId) {
+          const comments = Array.isArray(p.comments) ? p.comments.filter((c) => c.id !== commentId) : [];
+          return { ...p, comments };
+        }
+        return p;
+      })
+    );
+    await deleteCommentFromCommunityPostInFirestore(postId, commentId);
   };
 
   // Filter developers
@@ -1167,7 +1278,22 @@ export function App() {
             ---------------------------------------------------- */}
         {activeTab === 'community' && (
           <div style={{ width: '100%', minWidth: 0 }}>
-            <CommunityFeed />
+            <CommunityFeed
+              currentUser={currentUser}
+              userProfile={userProfile}
+              companyProfile={companyProfile}
+              isCompanyUser={isCompanyUser}
+              onOpenAuth={() => {
+                setAuthModalMode('login');
+                setIsAuthModalOpen(true);
+              }}
+              posts={communityPosts}
+              onSavePost={handleSavePost}
+              onToggleLike={handleTogglePostLike}
+              onAddComment={handleAddComment}
+              onDeletePost={handleDeletePost}
+              onDeleteComment={handleDeleteComment}
+            />
           </div>
         )}
 

@@ -391,3 +391,189 @@ export const deleteApplicationFromFirestore = async (appId) => {
     console.warn("Aviso Firestore al eliminar postulación:", error.message || error);
   }
 };
+
+// -------------------------------------------------------------
+// FIRESTORE: Comunidad (Debates, Comentarios & Likes)
+// -------------------------------------------------------------
+export const saveCommunityPostToFirestore = async (postData) => {
+  const postId = postData.id || `post-${Date.now()}`;
+  const cleanPost = {
+    ...postData,
+    id: postId,
+    likes: typeof postData.likes === 'number' ? postData.likes : 0,
+    likedBy: Array.isArray(postData.likedBy) ? postData.likedBy : [],
+    comments: Array.isArray(postData.comments) ? postData.comments : [],
+    updatedAt: Date.now(),
+    createdAt: postData.createdAt || Date.now()
+  };
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_posts') || '[]');
+    const filtered = existing.filter((p) => p.id !== postId);
+    localStorage.setItem('venstack_custom_posts', JSON.stringify([cleanPost, ...filtered]));
+  } catch (e) {
+    console.warn("Aviso guardando post en localStorage:", e);
+  }
+
+  try {
+    const docRef = doc(db, "community_posts", postId);
+    await withTimeout(setDoc(docRef, cleanPost, { merge: true }), 2500);
+    return cleanPost;
+  } catch (error) {
+    console.warn("Aviso Firestore al guardar post de comunidad:", error.message || error);
+    return cleanPost;
+  }
+};
+
+export const subscribeToCommunityPosts = (callback) => {
+  try {
+    const postsCol = collection(db, "community_posts");
+    return onSnapshot(
+      postsCol,
+      (snapshot) => {
+        const items = [];
+        snapshot.forEach((docSnap) => {
+          items.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        callback(items);
+      },
+      (error) => {
+        console.warn("Aviso Firestore community_posts (modo local activo):", error.message);
+      }
+    );
+  } catch (err) {
+    console.warn("No se pudo suscribir a community_posts en Firestore:", err);
+    return () => {};
+  }
+};
+
+export const toggleCommunityPostLikeInFirestore = async (postId, userIdentifier) => {
+  if (!userIdentifier) return;
+
+  let updatedPost = null;
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_posts') || '[]');
+    const idx = existing.findIndex((p) => p.id === postId);
+    if (idx >= 0) {
+      const p = existing[idx];
+      const likedBy = Array.isArray(p.likedBy) ? [...p.likedBy] : [];
+      const hasLiked = likedBy.includes(userIdentifier);
+      const newLikedBy = hasLiked 
+        ? likedBy.filter((u) => u !== userIdentifier)
+        : [...likedBy, userIdentifier];
+      const newLikes = Math.max(0, (typeof p.likes === 'number' ? p.likes : 0) + (hasLiked ? -1 : 1));
+
+      updatedPost = { ...p, likes: newLikes, likedBy: newLikedBy, updatedAt: Date.now() };
+      existing[idx] = updatedPost;
+      localStorage.setItem('venstack_custom_posts', JSON.stringify(existing));
+    }
+  } catch (e) {
+    console.warn("Aviso guardando like en localStorage:", e);
+  }
+
+  try {
+    const docRef = doc(db, "community_posts", postId);
+    const snap = await withTimeout(getDoc(docRef), 2000);
+    if (snap && snap.exists()) {
+      const data = snap.data();
+      const likedBy = Array.isArray(data.likedBy) ? [...data.likedBy] : [];
+      const hasLiked = likedBy.includes(userIdentifier);
+      const newLikedBy = hasLiked 
+        ? likedBy.filter((u) => u !== userIdentifier)
+        : [...likedBy, userIdentifier];
+      const newLikes = Math.max(0, (typeof data.likes === 'number' ? data.likes : 0) + (hasLiked ? -1 : 1));
+      
+      await withTimeout(setDoc(docRef, { likes: newLikes, likedBy: newLikedBy, updatedAt: Date.now() }, { merge: true }), 2500);
+    } else if (updatedPost) {
+      await withTimeout(setDoc(docRef, updatedPost, { merge: true }), 2500);
+    }
+  } catch (error) {
+    console.warn("Aviso Firestore al togglear like:", error.message || error);
+  }
+};
+
+export const addCommentToCommunityPostInFirestore = async (postId, commentData) => {
+  const commentId = commentData.id || `comm-${Date.now()}`;
+  const cleanComment = {
+    ...commentData,
+    id: commentId,
+    likes: typeof commentData.likes === 'number' ? commentData.likes : 0,
+    likedBy: Array.isArray(commentData.likedBy) ? commentData.likedBy : [],
+    createdAt: Date.now()
+  };
+
+  let updatedPost = null;
+
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_posts') || '[]');
+    const idx = existing.findIndex((p) => p.id === postId);
+    if (idx >= 0) {
+      const p = existing[idx];
+      const comments = Array.isArray(p.comments) ? [...p.comments, cleanComment] : [cleanComment];
+      updatedPost = { ...p, comments, updatedAt: Date.now() };
+      existing[idx] = updatedPost;
+      localStorage.setItem('venstack_custom_posts', JSON.stringify(existing));
+    }
+  } catch (e) {
+    console.warn("Aviso agregando comentario en localStorage:", e);
+  }
+
+  try {
+    const docRef = doc(db, "community_posts", postId);
+    const snap = await withTimeout(getDoc(docRef), 2000);
+    if (snap && snap.exists()) {
+      const data = snap.data();
+      const currentComments = Array.isArray(data.comments) ? data.comments : [];
+      const newComments = [...currentComments, cleanComment];
+      await withTimeout(setDoc(docRef, { comments: newComments, updatedAt: Date.now() }, { merge: true }), 2500);
+    } else if (updatedPost) {
+      await withTimeout(setDoc(docRef, updatedPost, { merge: true }), 2500);
+    }
+  } catch (error) {
+    console.warn("Aviso Firestore al agregar comentario:", error.message || error);
+  }
+
+  return cleanComment;
+};
+
+export const deleteCommunityPostFromFirestore = async (postId) => {
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_posts') || '[]');
+    const filtered = existing.filter((p) => p.id !== postId);
+    localStorage.setItem('venstack_custom_posts', JSON.stringify(filtered));
+  } catch (e) {}
+
+  try {
+    const docRef = doc(db, "community_posts", postId);
+    await withTimeout(deleteDoc(docRef), 2500);
+  } catch (error) {
+    console.warn("Aviso Firestore al eliminar post:", error.message || error);
+  }
+};
+
+export const deleteCommentFromCommunityPostInFirestore = async (postId, commentId) => {
+  try {
+    const existing = JSON.parse(localStorage.getItem('venstack_custom_posts') || '[]');
+    const idx = existing.findIndex((p) => p.id === postId);
+    if (idx >= 0) {
+      const p = existing[idx];
+      const comments = Array.isArray(p.comments) ? p.comments.filter((c) => c.id !== commentId) : [];
+      existing[idx] = { ...p, comments, updatedAt: Date.now() };
+      localStorage.setItem('venstack_custom_posts', JSON.stringify(existing));
+    }
+  } catch (e) {}
+
+  try {
+    const docRef = doc(db, "community_posts", postId);
+    const snap = await withTimeout(getDoc(docRef), 2000);
+    if (snap && snap.exists()) {
+      const data = snap.data();
+      const comments = Array.isArray(data.comments) ? data.comments.filter((c) => c.id !== commentId) : [];
+      await withTimeout(setDoc(docRef, { comments, updatedAt: Date.now() }, { merge: true }), 2500);
+    }
+  } catch (error) {
+    console.warn("Aviso Firestore al eliminar comentario:", error.message || error);
+  }
+};
+
