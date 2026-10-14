@@ -1,5 +1,5 @@
 import React from 'react';
-import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2, Smartphone, Users, Send, Shield } from 'lucide-react';
+import { Code2, Search, Plus, Briefcase, X, LogIn, LogOut, User, Building2, Smartphone, Users, Send, Shield, Sparkles } from 'lucide-react';
 import { getFallbackAvatar } from '../utils/avatar';
 
 export const Navbar = ({ 
@@ -9,6 +9,7 @@ export const Navbar = ({
   onOpenCreateProfile, 
   onOpenPublishJob, 
   onOpenPwaInstall,
+  onOpenOnboardingTour = null,
   onOpenApplicants = null,
   applicantsCount = 0,
   onOpenMyApplications = null,
@@ -245,6 +246,35 @@ export const Navbar = ({
             </button>
           )}
 
+          {/* Botón de Pruebas: Tour Onboarding Full Screen */}
+          {onOpenOnboardingTour && (
+            <button
+              onClick={onOpenOnboardingTour}
+              id="tour-onboarding-btn"
+              className="navbar-tour-btn"
+              style={{
+                height: '35px',
+                padding: '0 12px',
+                borderRadius: '999px',
+                border: '1px solid rgba(13, 148, 136, 0.3)',
+                background: 'linear-gradient(135deg, rgba(13, 148, 136, 0.08) 0%, rgba(15, 118, 110, 0.03) 100%)',
+                color: '#0f766e',
+                fontSize: '11.5px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                transition: 'all 0.16s ease',
+                flexShrink: 0
+              }}
+              title="Probar vista interactiva Full Screen de Onboarding"
+            >
+              <Sparkles size={13} color="#0d9488" />
+              <span>Tour Onboarding</span>
+            </button>
+          )}
+
           {/* User Auth Section */}
           {currentUser ? (() => {
             const effectiveAvatar = isCompanyUser ? (companyProfile?.avatar || currentUser?.avatar) : (userProfile?.avatar || currentUser?.avatar);
@@ -477,6 +507,8 @@ export const Navbar = ({
           #publish-btn span { display: none !important; }
           #publish-btn { padding: 0 10px !important; }
           #header-search { display: none !important; }
+          .navbar-tour-btn span { display: none !important; }
+          .navbar-tour-btn { padding: 0 10px !important; }
         }
 
         /* Responsive Mobile Header Tweaks */

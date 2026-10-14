@@ -239,7 +239,7 @@ export const AuthModal = ({
       );
 
       setTimeout(() => {
-        onLoginSuccess?.(user);
+        onLoginSuccess?.(user, { isNewRegistration: mode === 'register' });
         onClose();
         setSuccessMessage('');
       }, 1200);

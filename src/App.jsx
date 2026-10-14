@@ -21,6 +21,7 @@ import { UserApplicationsModal } from './components/UserApplicationsModal';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { AuthModal } from './components/AuthModal';
 import { AdminPanelModal } from './components/AdminPanelModal';
+import { FullScreenOnboarding } from './components/FullScreenOnboarding';
 import { 
   subscribeToAuthChanges, 
   logoutUser, 
@@ -360,6 +361,7 @@ export function App() {
   const [isPublishJobOpen, setIsPublishJobOpen] = useState(false);
   const [isManualPwaOpen, setIsManualPwaOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const [isFullScreenOnboardingOpen, setIsFullScreenOnboardingOpen] = useState(false);
 
   // Cinematic 2-second fullscreen onboarding transition
   const [isIntro, setIsIntro] = useState(true);
@@ -930,6 +932,7 @@ export function App() {
         onOpenCreateProfile={handleOpenCreateProfile}
         onOpenPublishJob={handleOpenPublishJob}
         onOpenPwaInstall={() => setIsManualPwaOpen(true)}
+        onOpenOnboardingTour={() => setIsFullScreenOnboardingOpen(true)}
         onOpenApplicants={() => {
           setApplicantsFilterJobId(null);
           setIsCompanyApplicantsOpen(true);
@@ -1457,9 +1460,27 @@ export function App() {
         isOpen={isAuthModalOpen}
         initialMode={authModalMode}
         onClose={() => setIsAuthModalOpen(false)}
-        onLoginSuccess={(user) => {
+        onLoginSuccess={(user, meta) => {
           setCurrentUser(user);
+          if (meta?.isNewRegistration) {
+            setIsFullScreenOnboardingOpen(true);
+          }
         }}
+      />
+
+      {/* Full Screen Onboarding Experience (High-end Hyperframes) */}
+      <FullScreenOnboarding
+        isOpen={isFullScreenOnboardingOpen}
+        onClose={() => setIsFullScreenOnboardingOpen(false)}
+        onExplore={() => {
+          setIsFullScreenOnboardingOpen(false);
+          handleScrollToDirectory();
+        }}
+        onCreateProfile={() => {
+          setIsFullScreenOnboardingOpen(false);
+          handleOpenCreateProfile();
+        }}
+        currentUser={currentUser}
       />
 
       {/* Admin Panel Modal (Moderación & Aprobación de Profesionales y Empresas) */}
