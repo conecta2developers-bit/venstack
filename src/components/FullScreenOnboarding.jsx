@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   ChevronRight, ChevronLeft, X, Sparkles, Code2, Briefcase, 
   MessageSquare, ShieldCheck, Zap, Globe, DollarSign, Award, 
@@ -132,8 +132,15 @@ export const FullScreenOnboarding = ({
   currentUser = null
 }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const scrollContainerRef = useRef(null);
 
-  // Reset to first slide when opening
+  // Touch swipe support
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const touchEndX = useRef(0);
+  const touchEndY = useRef(0);
+
+  // Reset to first slide when opening and handle body overflow
   useEffect(() => {
     if (isOpen) {
       setCurrentSlideIndex(0);
@@ -145,6 +152,28 @@ export const FullScreenOnboarding = ({
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  // Scroll to top when changing slide
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentSlideIndex]);
+
+  const currentSlide = ONBOARDING_SLIDES[currentSlideIndex];
+  const isLastSlide = currentSlideIndex === ONBOARDING_SLIDES.length - 1;
+
+  const handleNext = useCallback(() => {
+    if (isLastSlide) {
+      onClose?.();
+    } else {
+      setCurrentSlideIndex((prev) => Math.min(prev + 1, ONBOARDING_SLIDES.length - 1));
+    }
+  }, [isLastSlide, onClose]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentSlideIndex((prev) => Math.max(prev - 1, 0));
+  }, []);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e) => {
@@ -158,49 +187,64 @@ export const FullScreenOnboarding = ({
     } else if (e.key === 'Escape') {
       onClose?.();
     }
-  }, [isOpen, currentSlideIndex]);
+  }, [isOpen, handleNext, handlePrev, onClose]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  if (!isOpen) return null;
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
 
-  const currentSlide = ONBOARDING_SLIDES[currentSlideIndex];
-  const isLastSlide = currentSlideIndex === ONBOARDING_SLIDES.length - 1;
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+    touchEndY.current = e.touches[0].clientY;
+  };
 
-  const handleNext = () => {
-    if (isLastSlide) {
-      onClose?.();
-    } else {
-      setCurrentSlideIndex((prev) => Math.min(prev + 1, ONBOARDING_SLIDES.length - 1));
+  const handleTouchEnd = () => {
+    const diffX = touchStartX.current - touchEndX.current;
+    const diffY = touchStartY.current - touchEndY.current;
+    // Only trigger horizontal swipe if movement is mostly horizontal
+    if (Math.abs(diffX) > 65 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+      if (diffX > 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
     }
   };
 
-  const handlePrev = () => {
-    setCurrentSlideIndex((prev) => Math.max(prev - 1, 0));
-  };
+  if (!isOpen) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 99999,
-      backgroundColor: '#0a0a0c',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      overflow: 'hidden',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif',
-      color: '#ffffff'
-    }}>
+    <div 
+      ref={scrollContainerRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 99999,
+        backgroundColor: '#0a0a0c',
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif',
+        color: '#ffffff'
+      }}
+    >
       
-      {/* Background Cinematic Cover Image with Smooth Ken Burns Zoom */}
+      {/* Background Cinematic Cover Image (Fixed in Place) */}
       <div 
         key={currentSlide.id}
         style={{
-          position: 'absolute',
+          position: 'fixed',
           inset: 0,
           backgroundImage: `url('${currentSlide.image}')`,
           backgroundSize: 'cover',
@@ -208,22 +252,24 @@ export const FullScreenOnboarding = ({
           animation: 'kenBurnsEffect 14s ease-out infinite alternate',
           transformOrigin: 'center center',
           zIndex: 1,
-          filter: 'brightness(0.72) saturate(1.15)',
-          transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+          filter: 'brightness(0.68) saturate(1.15)',
+          transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+          pointerEvents: 'none'
         }}
       />
 
       {/* Layered Luxury Gradient Vignette for Razor-Sharp Readability */}
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         inset: 0,
-        background: 'radial-gradient(circle at 50% 30%, rgba(10, 10, 12, 0.4) 0%, rgba(10, 10, 12, 0.88) 80%, rgba(10, 10, 12, 0.98) 100%)',
-        zIndex: 2
+        background: 'radial-gradient(circle at 50% 30%, rgba(10, 10, 12, 0.45) 0%, rgba(10, 10, 12, 0.88) 80%, rgba(10, 10, 12, 0.98) 100%)',
+        zIndex: 2,
+        pointerEvents: 'none'
       }} />
 
-      {/* Hyperframe Glow Accent */}
+      {/* Hyperframe Glow Accent (Fixed) */}
       <div style={{
-        position: 'absolute',
+        position: 'fixed',
         top: '20%',
         left: '50%',
         transform: 'translateX(-50%)',
@@ -236,19 +282,24 @@ export const FullScreenOnboarding = ({
       }} />
 
       {/* ----------------------------------------------------
-          TOP NAVIGATION BAR (Story-style segmented progress)
+          TOP NAVIGATION BAR (Sticky with Blur)
           ---------------------------------------------------- */}
       <header style={{
-        position: 'relative',
-        zIndex: 10,
-        padding: '16px 24px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 25,
+        padding: '16px 20px 12px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
+        gap: '10px',
         maxWidth: '1200px',
         width: '100%',
         margin: '0 auto',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        background: 'rgba(10, 10, 12, 0.65)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
       }}>
         {/* Progress Bars */}
         <div style={{
@@ -283,10 +334,10 @@ export const FullScreenOnboarding = ({
             <img 
               src="/img/venstack.png" 
               alt="Venstack" 
-              style={{ height: '32px', width: 'auto', objectFit: 'contain' }} 
+              style={{ height: '30px', width: 'auto', objectFit: 'contain' }} 
             />
-            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase' }}>
-              Tour de Bienvenida • {currentSlideIndex + 1} de {ONBOARDING_SLIDES.length}
+            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'rgba(255, 255, 255, 0.65)', textTransform: 'uppercase' }}>
+              Paso {currentSlideIndex + 1} de {ONBOARDING_SLIDES.length}
             </span>
           </div>
 
@@ -315,14 +366,14 @@ export const FullScreenOnboarding = ({
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
             }}
           >
-            <span>Saltar tour</span>
+            <span>Saltar</span>
             <X size={13} />
           </button>
         </div>
       </header>
 
       {/* ----------------------------------------------------
-          MAIN SLIDE CONTENT (Hyperframe Glass Stage)
+          MAIN SLIDE CONTENT (Scrollable & Responsive)
           ---------------------------------------------------- */}
       <main style={{
         position: 'relative',
@@ -330,13 +381,13 @@ export const FullScreenOnboarding = ({
         maxWidth: '1000px',
         width: '100%',
         margin: '0 auto',
-        padding: '0 24px',
+        padding: '24px 20px 32px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        flex: 1,
+        flex: '1 0 auto',
         boxSizing: 'border-box'
       }}>
         <div 
@@ -363,7 +414,7 @@ export const FullScreenOnboarding = ({
             fontWeight: 800,
             letterSpacing: '0.06em',
             color: currentSlide.badgeColor,
-            marginBottom: '16px',
+            marginBottom: '14px',
             boxShadow: `0 0 20px ${currentSlide.badgeColor}20`
           }}>
             <span style={{
@@ -378,10 +429,10 @@ export const FullScreenOnboarding = ({
 
           {/* Headline */}
           <h1 style={{
-            fontSize: 'clamp(28px, 4.2vw, 46px)',
+            fontSize: 'clamp(24px, 4.5vw, 44px)',
             fontWeight: 800,
-            lineHeight: 1.15,
-            letterSpacing: '-0.03em',
+            lineHeight: 1.18,
+            letterSpacing: '-0.025em',
             margin: '0 0 12px 0',
             maxWidth: '820px'
           }}>
@@ -398,11 +449,11 @@ export const FullScreenOnboarding = ({
 
           {/* Subtitle */}
           <p style={{
-            fontSize: 'clamp(14px, 1.6vw, 17px)',
+            fontSize: 'clamp(13px, 1.6vw, 16px)',
             color: 'rgba(255, 255, 255, 0.8)',
             lineHeight: 1.6,
             maxWidth: '680px',
-            margin: '0 0 32px 0',
+            margin: '0 0 28px 0',
             fontWeight: 400
           }}>
             {currentSlide.description}
@@ -412,7 +463,7 @@ export const FullScreenOnboarding = ({
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '14px',
+            gap: '12px',
             width: '100%',
             maxWidth: '920px',
             boxSizing: 'border-box'
@@ -423,12 +474,12 @@ export const FullScreenOnboarding = ({
                 <div 
                   key={i}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
+                    background: 'rgba(255, 255, 255, 0.06)',
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '20px',
-                    padding: '18px',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: '18px',
+                    padding: '16px',
                     textAlign: 'left',
                     display: 'flex',
                     flexDirection: 'column',
@@ -439,18 +490,18 @@ export const FullScreenOnboarding = ({
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.09)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
                     e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
                   }}
                 >
                   <div style={{
-                    width: '36px',
-                    height: '36px',
+                    width: '34px',
+                    height: '34px',
                     borderRadius: '10px',
                     backgroundColor: `${card.iconColor}22`,
                     border: `1px solid ${card.iconColor}40`,
@@ -459,12 +510,12 @@ export const FullScreenOnboarding = ({
                     justifyContent: 'center',
                     color: card.iconColor
                   }}>
-                    <IconComp size={18} />
+                    <IconComp size={17} />
                   </div>
-                  <h4 style={{ fontSize: '14.5px', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+                  <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: '#ffffff' }}>
                     {card.title}
                   </h4>
-                  <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.7)', margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.72)', margin: 0, lineHeight: 1.5 }}>
                     {card.desc}
                   </p>
                 </div>
@@ -475,21 +526,26 @@ export const FullScreenOnboarding = ({
       </main>
 
       {/* ----------------------------------------------------
-          BOTTOM DOCK (Controls & Call to Actions)
+          BOTTOM DOCK (Sticky Controls)
           ---------------------------------------------------- */}
       <footer style={{
-        position: 'relative',
-        zIndex: 10,
-        padding: '20px 24px 32px',
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 25,
+        padding: '14px 20px max(16px, env(safe-area-inset-bottom))',
         maxWidth: '1000px',
         width: '100%',
         margin: '0 auto',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '16px',
+        gap: '12px',
         boxSizing: 'border-box',
-        flexWrap: 'wrap'
+        flexWrap: 'wrap',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        background: 'linear-gradient(to top, rgba(10, 10, 12, 0.98) 0%, rgba(10, 10, 12, 0.88) 75%, rgba(10, 10, 12, 0.4) 100%)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)'
       }}>
         {/* Prev Button */}
         <button
@@ -498,14 +554,14 @@ export const FullScreenOnboarding = ({
           style={{
             background: 'transparent',
             border: 'none',
-            color: currentSlideIndex === 0 ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.8)',
-            fontSize: '13px',
+            color: currentSlideIndex === 0 ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.85)',
+            fontSize: '12.5px',
             fontWeight: 600,
             cursor: currentSlideIndex === 0 ? 'default' : 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            padding: '8px 16px',
+            gap: '5px',
+            padding: '8px 14px',
             borderRadius: '999px',
             transition: 'all 0.2s ease'
           }}
@@ -521,8 +577,8 @@ export const FullScreenOnboarding = ({
               key={idx}
               onClick={() => setCurrentSlideIndex(idx)}
               style={{
-                width: idx === currentSlideIndex ? '24px' : '8px',
-                height: '8px',
+                width: idx === currentSlideIndex ? '22px' : '7px',
+                height: '7px',
                 borderRadius: '999px',
                 backgroundColor: idx === currentSlideIndex ? currentSlide.badgeColor : 'rgba(255, 255, 255, 0.25)',
                 border: 'none',
@@ -535,7 +591,7 @@ export const FullScreenOnboarding = ({
         </div>
 
         {/* Next / Finish Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {isLastSlide ? (
             <>
               <button
@@ -548,14 +604,14 @@ export const FullScreenOnboarding = ({
                   border: '1px solid rgba(255, 255, 255, 0.2)',
                   backdropFilter: 'blur(16px)',
                   color: '#ffffff',
-                  padding: '10px 18px',
+                  padding: '9px 16px',
                   borderRadius: '999px',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                   fontWeight: 600,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '6px',
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
@@ -566,7 +622,7 @@ export const FullScreenOnboarding = ({
                 }}
               >
                 <span>Crear mi Perfil</span>
-                <CheckCircle2 size={15} color="#34d399" />
+                <CheckCircle2 size={14} color="#34d399" />
               </button>
 
               <button
@@ -578,15 +634,15 @@ export const FullScreenOnboarding = ({
                   background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
                   border: 'none',
                   color: '#ffffff',
-                  padding: '10px 22px',
+                  padding: '9px 20px',
                   borderRadius: '999px',
-                  fontSize: '13px',
+                  fontSize: '12.5px',
                   fontWeight: 700,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 20px rgba(13, 148, 136, 0.5)',
+                  gap: '6px',
+                  boxShadow: '0 4px 18px rgba(13, 148, 136, 0.5)',
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
@@ -597,7 +653,7 @@ export const FullScreenOnboarding = ({
                 }}
               >
                 <span>¡Entrar a Venstack!</span>
-                <ArrowRight size={15} />
+                <ArrowRight size={14} />
               </button>
             </>
           ) : (
@@ -607,15 +663,15 @@ export const FullScreenOnboarding = ({
                 background: '#ffffff',
                 border: 'none',
                 color: '#0a0a0c',
-                padding: '10px 22px',
+                padding: '9px 20px',
                 borderRadius: '999px',
-                fontSize: '13px',
+                fontSize: '12.5px',
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 20px rgba(255, 255, 255, 0.25)',
+                gap: '6px',
+                boxShadow: '0 4px 18px rgba(255, 255, 255, 0.25)',
                 transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
@@ -626,7 +682,7 @@ export const FullScreenOnboarding = ({
               }}
             >
               <span>Siguiente</span>
-              <ChevronRight size={15} />
+              <ChevronRight size={14} />
             </button>
           )}
         </div>
@@ -646,8 +702,8 @@ export const FullScreenOnboarding = ({
         @keyframes hyperframeIn {
           0% {
             opacity: 0;
-            transform: translateY(24px) scale(0.97);
-            filter: blur(8px);
+            transform: translateY(20px) scale(0.98);
+            filter: blur(6px);
           }
           100% {
             opacity: 1;
@@ -659,7 +715,7 @@ export const FullScreenOnboarding = ({
         @keyframes hyperframeCard {
           0% {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(16px);
           }
           100% {
             opacity: 1;
