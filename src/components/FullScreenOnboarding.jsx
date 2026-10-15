@@ -207,8 +207,7 @@ export const FullScreenOnboarding = ({
   const handleTouchEnd = () => {
     const diffX = touchStartX.current - touchEndX.current;
     const diffY = touchStartY.current - touchEndY.current;
-    // Only trigger horizontal swipe if movement is mostly horizontal
-    if (Math.abs(diffX) > 65 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
+    if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY) * 1.5) {
       if (diffX > 0) {
         handleNext();
       } else {
@@ -221,20 +220,12 @@ export const FullScreenOnboarding = ({
 
   return (
     <div 
-      ref={scrollContainerRef}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
       style={{
         position: 'fixed',
         inset: 0,
         zIndex: 99999,
         backgroundColor: '#0a0a0c',
-        display: 'flex',
-        flexDirection: 'column',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-        WebkitOverflowScrolling: 'touch',
+        overflow: 'hidden',
         fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif',
         color: '#ffffff'
       }}
@@ -244,7 +235,7 @@ export const FullScreenOnboarding = ({
       <div 
         key={currentSlide.id}
         style={{
-          position: 'fixed',
+          position: 'absolute',
           inset: 0,
           backgroundImage: `url('${currentSlide.image}')`,
           backgroundSize: 'cover',
@@ -260,7 +251,7 @@ export const FullScreenOnboarding = ({
 
       {/* Layered Luxury Gradient Vignette for Razor-Sharp Readability */}
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
         background: 'radial-gradient(circle at 50% 30%, rgba(10, 10, 12, 0.45) 0%, rgba(10, 10, 12, 0.88) 80%, rgba(10, 10, 12, 0.98) 100%)',
         zIndex: 2,
@@ -269,7 +260,7 @@ export const FullScreenOnboarding = ({
 
       {/* Hyperframe Glow Accent (Fixed) */}
       <div style={{
-        position: 'fixed',
+        position: 'absolute',
         top: '20%',
         left: '50%',
         transform: 'translateX(-50%)',
@@ -282,368 +273,424 @@ export const FullScreenOnboarding = ({
       }} />
 
       {/* ----------------------------------------------------
-          TOP NAVIGATION BAR (Sticky with Blur)
+          TOP NAVIGATION BAR (Strictly Fixed at the Top)
           ---------------------------------------------------- */}
       <header style={{
-        position: 'sticky',
+        position: 'absolute',
         top: 0,
-        zIndex: 25,
-        padding: '16px 20px 12px',
+        left: 0,
+        right: 0,
+        zIndex: 30,
+        padding: '14px 20px 10px',
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
-        maxWidth: '1200px',
-        width: '100%',
-        margin: '0 auto',
-        boxSizing: 'border-box',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        background: 'rgba(10, 10, 12, 0.65)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        background: 'rgba(10, 10, 12, 0.78)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        boxSizing: 'border-box'
       }}>
-        {/* Progress Bars */}
-        <div style={{
-          display: 'flex',
-          gap: '6px',
-          width: '100%'
-        }}>
-          {ONBOARDING_SLIDES.map((slide, idx) => (
-            <div 
-              key={slide.id}
-              onClick={() => setCurrentSlideIndex(idx)}
-              style={{
-                flex: 1,
-                height: '4px',
-                borderRadius: '999px',
-                backgroundColor: idx <= currentSlideIndex ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
-                boxShadow: idx === currentSlideIndex ? '0 0 10px rgba(255, 255, 255, 0.8)' : 'none',
-                cursor: 'pointer',
-                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Brand & Skip Row */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <img 
-              src="/img/venstack.png" 
-              alt="Venstack" 
-              style={{ height: '30px', width: 'auto', objectFit: 'contain' }} 
-            />
-            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'rgba(255, 255, 255, 0.65)', textTransform: 'uppercase' }}>
-              Paso {currentSlideIndex + 1} de {ONBOARDING_SLIDES.length}
-            </span>
+        <div style={{ maxWidth: '1000px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* Progress Bars */}
+          <div style={{
+            display: 'flex',
+            gap: '6px',
+            width: '100%'
+          }}>
+            {ONBOARDING_SLIDES.map((slide, idx) => (
+              <div 
+                key={slide.id}
+                onClick={() => setCurrentSlideIndex(idx)}
+                style={{
+                  flex: 1,
+                  height: '4px',
+                  borderRadius: '999px',
+                  backgroundColor: idx <= currentSlideIndex ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+                  boxShadow: idx === currentSlideIndex ? '0 0 10px rgba(255, 255, 255, 0.8)' : 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              />
+            ))}
           </div>
 
-          <button
-            onClick={onClose}
-            style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              color: '#ffffff',
-              padding: '6px 14px',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-            }}
-          >
-            <span>Saltar</span>
-            <X size={13} />
-          </button>
+          {/* Brand & Skip Row */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <img 
+                src="/img/venstack.png" 
+                alt="Venstack" 
+                style={{ height: '28px', width: 'auto', objectFit: 'contain' }} 
+              />
+              <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'rgba(255, 255, 255, 0.65)', textTransform: 'uppercase' }}>
+                Paso {currentSlideIndex + 1} de {ONBOARDING_SLIDES.length}
+              </span>
+            </div>
+
+            <button
+              onClick={onClose}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                color: '#ffffff',
+                padding: '5px 12px',
+                borderRadius: '999px',
+                fontSize: '11.5px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+            >
+              <span>Saltar</span>
+              <X size={13} />
+            </button>
+          </div>
         </div>
       </header>
 
       {/* ----------------------------------------------------
-          MAIN SLIDE CONTENT (Scrollable & Responsive)
+          MIDDLE SCROLLABLE CONTENT (Only this scrolls)
           ---------------------------------------------------- */}
-      <main style={{
-        position: 'relative',
-        zIndex: 10,
-        maxWidth: '1000px',
-        width: '100%',
-        margin: '0 auto',
-        padding: '24px 20px 32px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        flex: '1 0 auto',
-        boxSizing: 'border-box'
-      }}>
-        <div 
-          key={currentSlide.id}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-            animation: 'hyperframeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-          }}
-        >
-          {/* Eyebrow Pill */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'rgba(255, 255, 255, 0.08)',
-            border: `1px solid ${currentSlide.badgeColor}40`,
-            backdropFilter: 'blur(20px)',
-            padding: '5px 14px',
-            borderRadius: '999px',
-            fontSize: '11px',
-            fontWeight: 800,
-            letterSpacing: '0.06em',
-            color: currentSlide.badgeColor,
-            marginBottom: '14px',
-            boxShadow: `0 0 20px ${currentSlide.badgeColor}20`
-          }}>
-            <span style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              backgroundColor: currentSlide.badgeColor,
-              boxShadow: `0 0 8px ${currentSlide.badgeColor}`
-            }} />
-            <span>{currentSlide.badge}</span>
-          </div>
-
-          {/* Headline */}
-          <h1 style={{
-            fontSize: 'clamp(24px, 4.5vw, 44px)',
-            fontWeight: 800,
-            lineHeight: 1.18,
-            letterSpacing: '-0.025em',
-            margin: '0 0 12px 0',
-            maxWidth: '820px'
-          }}>
-            {currentSlide.title}{' '}
-            <span style={{
-              background: `linear-gradient(135deg, #ffffff 30%, ${currentSlide.badgeColor} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              display: 'inline'
+      <main 
+        ref={scrollContainerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          WebkitOverflowScrolling: 'touch',
+          paddingTop: '82px',
+          paddingBottom: '88px',
+          boxSizing: 'border-box'
+        }}
+      >
+        <div style={{
+          maxWidth: '1000px',
+          width: '100%',
+          margin: '0 auto',
+          padding: '16px 20px 24px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          minHeight: '100%',
+          boxSizing: 'border-box'
+        }}>
+          <div 
+            key={currentSlide.id}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              width: '100%',
+              animation: 'hyperframeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+            }}
+          >
+            {/* Eyebrow Pill */}
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: `1px solid ${currentSlide.badgeColor}40`,
+              backdropFilter: 'blur(20px)',
+              padding: '5px 14px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '0.06em',
+              color: currentSlide.badgeColor,
+              marginBottom: '14px',
+              boxShadow: `0 0 20px ${currentSlide.badgeColor}20`
             }}>
-              {currentSlide.highlight}
-            </span>
-          </h1>
+              <span style={{
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                backgroundColor: currentSlide.badgeColor,
+                boxShadow: `0 0 8px ${currentSlide.badgeColor}`
+              }} />
+              <span>{currentSlide.badge}</span>
+            </div>
 
-          {/* Subtitle */}
-          <p style={{
-            fontSize: 'clamp(13px, 1.6vw, 16px)',
-            color: 'rgba(255, 255, 255, 0.8)',
-            lineHeight: 1.6,
-            maxWidth: '680px',
-            margin: '0 0 28px 0',
-            fontWeight: 400
-          }}>
-            {currentSlide.description}
-          </p>
+            {/* Headline */}
+            <h1 style={{
+              fontSize: 'clamp(23px, 4.2vw, 42px)',
+              fontWeight: 800,
+              lineHeight: 1.18,
+              letterSpacing: '-0.025em',
+              margin: '0 0 12px 0',
+              maxWidth: '820px'
+            }}>
+              {currentSlide.title}{' '}
+              <span style={{
+                background: `linear-gradient(135deg, #ffffff 30%, ${currentSlide.badgeColor} 100%)`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                display: 'inline'
+              }}>
+                {currentSlide.highlight}
+              </span>
+            </h1>
 
-          {/* 3 Hyperframe Glass Floating Cards */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: '12px',
-            width: '100%',
-            maxWidth: '920px',
-            boxSizing: 'border-box'
-          }}>
-            {currentSlide.cards.map((card, i) => {
-              const IconComp = card.icon;
-              return (
-                <div 
-                  key={i}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.06)',
-                    backdropFilter: 'blur(20px)',
-                    WebkitBackdropFilter: 'blur(20px)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '18px',
-                    padding: '16px',
-                    textAlign: 'left',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.28)',
-                    transition: 'all 0.25s ease',
-                    animation: `hyperframeCard 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + i * 0.08}s backwards`
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                  }}
-                >
-                  <div style={{
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '10px',
-                    backgroundColor: `${card.iconColor}22`,
-                    border: `1px solid ${card.iconColor}40`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: card.iconColor
-                  }}>
-                    <IconComp size={17} />
+            {/* Subtitle */}
+            <p style={{
+              fontSize: 'clamp(13px, 1.5vw, 16px)',
+              color: 'rgba(255, 255, 255, 0.8)',
+              lineHeight: 1.55,
+              maxWidth: '680px',
+              margin: '0 0 24px 0',
+              fontWeight: 400
+            }}>
+              {currentSlide.description}
+            </p>
+
+            {/* 3 Hyperframe Glass Floating Cards */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: '12px',
+              width: '100%',
+              maxWidth: '920px',
+              boxSizing: 'border-box'
+            }}>
+              {currentSlide.cards.map((card, i) => {
+                const IconComp = card.icon;
+                return (
+                  <div 
+                    key={i}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.06)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      borderRadius: '18px',
+                      padding: '16px',
+                      textAlign: 'left',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.28)',
+                      transition: 'all 0.25s ease',
+                      animation: `hyperframeCard 0.4s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + i * 0.08}s backwards`
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-3px)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.06)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                    }}
+                  >
+                    <div style={{
+                      width: '34px',
+                      height: '34px',
+                      borderRadius: '10px',
+                      backgroundColor: `${card.iconColor}22`,
+                      border: `1px solid ${card.iconColor}40`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: card.iconColor
+                    }}>
+                      <IconComp size={17} />
+                    </div>
+                    <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+                      {card.title}
+                    </h4>
+                    <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.72)', margin: 0, lineHeight: 1.5 }}>
+                      {card.desc}
+                    </p>
                   </div>
-                  <h4 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: '#ffffff' }}>
-                    {card.title}
-                  </h4>
-                  <p style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.72)', margin: 0, lineHeight: 1.5 }}>
-                    {card.desc}
-                  </p>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       </main>
 
       {/* ----------------------------------------------------
-          BOTTOM DOCK (Sticky Controls)
+          BOTTOM DOCK (Strictly Fixed at the Bottom)
           ---------------------------------------------------- */}
       <footer style={{
-        position: 'sticky',
+        position: 'absolute',
         bottom: 0,
-        zIndex: 25,
-        padding: '14px 20px max(16px, env(safe-area-inset-bottom))',
-        maxWidth: '1000px',
-        width: '100%',
-        margin: '0 auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        boxSizing: 'border-box',
-        flexWrap: 'wrap',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        background: 'linear-gradient(to top, rgba(10, 10, 12, 0.98) 0%, rgba(10, 10, 12, 0.88) 75%, rgba(10, 10, 12, 0.4) 100%)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+        left: 0,
+        right: 0,
+        zIndex: 30,
+        padding: '12px 20px max(14px, env(safe-area-inset-bottom))',
+        backdropFilter: 'blur(28px)',
+        WebkitBackdropFilter: 'blur(28px)',
+        background: 'linear-gradient(to top, rgba(10, 10, 12, 0.98) 0%, rgba(10, 10, 12, 0.92) 80%, rgba(10, 10, 12, 0.6) 100%)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        boxSizing: 'border-box'
       }}>
-        {/* Prev Button */}
-        <button
-          onClick={handlePrev}
-          disabled={currentSlideIndex === 0}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: currentSlideIndex === 0 ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.85)',
-            fontSize: '12.5px',
-            fontWeight: 600,
-            cursor: currentSlideIndex === 0 ? 'default' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '5px',
-            padding: '8px 14px',
-            borderRadius: '999px',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <ChevronLeft size={16} />
-          <span>Anterior</span>
-        </button>
+        <div style={{
+          maxWidth: '1000px',
+          width: '100%',
+          margin: '0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '10px',
+          boxSizing: 'border-box'
+        }}>
+          {/* Prev Button */}
+          <button
+            onClick={handlePrev}
+            disabled={currentSlideIndex === 0}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: currentSlideIndex === 0 ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.85)',
+              fontSize: '12.5px',
+              fontWeight: 600,
+              cursor: currentSlideIndex === 0 ? 'default' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '8px 12px',
+              borderRadius: '999px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <ChevronLeft size={16} />
+            <span>Anterior</span>
+          </button>
 
-        {/* Slide Indicator Dots */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {ONBOARDING_SLIDES.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrentSlideIndex(idx)}
-              style={{
-                width: idx === currentSlideIndex ? '22px' : '7px',
-                height: '7px',
-                borderRadius: '999px',
-                backgroundColor: idx === currentSlideIndex ? currentSlide.badgeColor : 'rgba(255, 255, 255, 0.25)',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Next / Finish Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {isLastSlide ? (
-            <>
+          {/* Slide Indicator Dots */}
+          <div style={{ display: 'flex', gap: '7px', alignItems: 'center' }}>
+            {ONBOARDING_SLIDES.map((_, idx) => (
               <button
-                onClick={() => {
-                  onClose?.();
-                  onCreateProfile?.();
-                }}
+                key={idx}
+                onClick={() => setCurrentSlideIndex(idx)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.12)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  backdropFilter: 'blur(16px)',
-                  color: '#ffffff',
-                  padding: '9px 16px',
+                  width: idx === currentSlideIndex ? '20px' : '7px',
+                  height: '7px',
                   borderRadius: '999px',
-                  fontSize: '12.5px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
-                }}
-              >
-                <span>Crear mi Perfil</span>
-                <CheckCircle2 size={14} color="#34d399" />
-              </button>
-
-              <button
-                onClick={() => {
-                  onClose?.();
-                  onExplore?.();
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                  backgroundColor: idx === currentSlideIndex ? currentSlide.badgeColor : 'rgba(255, 255, 255, 0.25)',
                   border: 'none',
-                  color: '#ffffff',
-                  padding: '9px 20px',
+                  padding: 0,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Next / Finish Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {isLastSlide ? (
+              <>
+                <button
+                  onClick={() => {
+                    onClose?.();
+                    onCreateProfile?.();
+                  }}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(16px)',
+                    color: '#ffffff',
+                    padding: '8px 14px',
+                    borderRadius: '999px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)';
+                  }}
+                >
+                  <span>Crear Perfil</span>
+                  <CheckCircle2 size={13} color="#34d399" />
+                </button>
+
+                <button
+                  onClick={() => {
+                    onClose?.();
+                    onExplore?.();
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                    border: 'none',
+                    color: '#ffffff',
+                    padding: '8px 18px',
+                    borderRadius: '999px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 18px rgba(13, 148, 136, 0.5)',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.03)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  <span>¡Entrar!</span>
+                  <ArrowRight size={13} />
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleNext}
+                style={{
+                  background: '#ffffff',
+                  border: 'none',
+                  color: '#0a0a0c',
+                  padding: '8px 18px',
                   borderRadius: '999px',
-                  fontSize: '12.5px',
+                  fontSize: '12px',
                   fontWeight: 700,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 4px 18px rgba(13, 148, 136, 0.5)',
-                  transition: 'all 0.2s ease'
+                  boxShadow: '0 4px 18px rgba(255, 255, 255, 0.25)',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'scale(1.03)';
@@ -652,39 +699,11 @@ export const FullScreenOnboarding = ({
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                <span>¡Entrar a Venstack!</span>
-                <ArrowRight size={14} />
+                <span>Siguiente</span>
+                <ChevronRight size={13} />
               </button>
-            </>
-          ) : (
-            <button
-              onClick={handleNext}
-              style={{
-                background: '#ffffff',
-                border: 'none',
-                color: '#0a0a0c',
-                padding: '9px 20px',
-                borderRadius: '999px',
-                fontSize: '12.5px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                boxShadow: '0 4px 18px rgba(255, 255, 255, 0.25)',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.03)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-              }}
-            >
-              <span>Siguiente</span>
-              <ChevronRight size={14} />
-            </button>
-          )}
+            )}
+          </div>
         </div>
       </footer>
 
